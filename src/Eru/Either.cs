@@ -19,7 +19,7 @@ namespace Eru
         }
 
         public bool LeftHasValue { get; private set; }
-        private bool RightHasValue { get; set; }
+        public bool RightHasValue { get; set; }
 
         public TLeft Left
         {

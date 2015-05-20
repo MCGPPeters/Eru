@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 
 namespace Eru.Tests
 {
@@ -9,7 +10,9 @@ namespace Eru.Tests
             [Fact]
             private void Left_identity()
             {
-                //Eru.Either.Bind(1.AsEither(), k) = k(e);
+                //Func<int, Either<int, bool>> k = i => new Either<int, bool>(2);
+                //var bla = 1.AsEither<int, int>().Bind(k);
+                //var foo = (1 == bla(1));
             }
 
             [Fact]
