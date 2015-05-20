@@ -28,6 +28,9 @@ namespace Eru
         /// <summary>
         /// Gets the single unit value.
         /// </summary>
-        public static Unit Instance { get; } = new Unit();
+        public static Unit Instance
+        {
+            get { return new Unit(); }
+        }
     }
 }
