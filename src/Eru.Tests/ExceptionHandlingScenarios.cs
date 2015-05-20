@@ -28,7 +28,7 @@ namespace Eru.Tests
         public void Dividing_an_integer_by_zero_returns_an_exception(int dividend)
         {
             var expectedResult = new Either<Exception, int>(new DivideByZeroException());
-            const int divisor = 0;
+            int divisor = 0;
 
             var actualResult = dividend.Try(x => x/divisor);
 
@@ -55,7 +55,7 @@ namespace Eru.Tests
         {
             var expectedResult = new Either<Exception, int>(new DivideByZeroException());
             var i = 0;
-            const int divisor = 0;
+            int divisor = 0;
             Func<bool> predicate = () => 3 != i++;
             
             var actualResult = 6
