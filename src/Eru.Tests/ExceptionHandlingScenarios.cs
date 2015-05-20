@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Eru.ExceptionHandling;
 using FluentAssertions;
 using Xunit;
 
-namespace Eru.ExceptionHandling.Tests
+namespace Eru.Tests
 {
     public class ExceptionHandlingScenarios
     {
@@ -24,17 +25,16 @@ namespace Eru.ExceptionHandling.Tests
         [Theory]
         [InlineData(1)]
         [InlineData(13)]
-#pragma warning disable CS0020
         public void Dividing_an_integer_by_zero_returns_an_exception(int dividend)
         {
             var expectedResult = new Either<Exception, int>(new DivideByZeroException());
+            const int divisor = 0;
 
-            var actualResult = dividend.Try(x => x/0);
+            var actualResult = dividend.Try(x => x/divisor);
 
             actualResult.Should().Be(expectedResult, "Integers may not be divided by zero");
         }
 
-#pragma warning restore 3021
         [Theory]
         [InlineData(6, 2, 3.0, 1.0)]
         [InlineData(16, 2, 4.0, 2.0)]
@@ -55,17 +55,17 @@ namespace Eru.ExceptionHandling.Tests
         {
             var expectedResult = new Either<Exception, int>(new DivideByZeroException());
             var i = 0;
+            const int divisor = 0;
             Func<bool> predicate = () => 3 != i++;
             
             var actualResult = 6
-                .Retry(x => x/0)
+                .Retry(x => x/divisor)
                 .While(predicate);
                 
             actualResult.Should().Be(expectedResult, "Division by zero is not allowed");
             i.Should().Be(4, "The function call should be retried 3 times");
         }
 
-#pragma warning restore 3021
         [Fact]
         public void Retry_should_retry_only_as_long_as_the_call_fails()
         {
