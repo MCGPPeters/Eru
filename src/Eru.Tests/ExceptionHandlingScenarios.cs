@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Eru.ExceptionHandling;
 using FluentAssertions;
@@ -7,6 +8,7 @@ using Xunit;
 
 namespace Eru.Tests
 {
+    [SuppressMessage("ReSharper", "ConvertToConstant.Local", Justification = "Using a const integer as a divisor will cause a compile time error")]
     public class ExceptionHandlingScenarios
     {
         [Theory]
@@ -55,7 +57,7 @@ namespace Eru.Tests
         {
             var expectedResult = new Either<Exception, int>(new DivideByZeroException());
             var i = 0;
-            int divisor = 0;
+            var divisor = 0;
             Func<bool> predicate = () => 3 != i++;
             
             var actualResult = 6
