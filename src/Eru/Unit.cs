@@ -2,8 +2,13 @@
 
 namespace Eru
 {
-    public struct Unit : IEquatable<Unit>
+    public struct Unit : IComparable<Unit>, IEquatable<Unit>
     {
+        public int CompareTo(Unit other)
+        {
+            return 0;
+        }
+
         public bool Equals(Unit other)
         {
             return true;
