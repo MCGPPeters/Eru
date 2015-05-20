@@ -23,14 +23,5 @@ namespace Eru
         {
             return "{}";
         }
-
-
-        /// <summary>
-        /// Gets the single unit value.
-        /// </summary>
-        public static Unit Instance
-        {
-            get { return new Unit(); }
-        }
     }
 }
