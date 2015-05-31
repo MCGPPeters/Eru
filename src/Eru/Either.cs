@@ -19,12 +19,12 @@ namespace Eru
         }
 
         public bool LeftHasValue { get; private set; }
-        public bool RightHasValue { get; set; }
+        public bool RightHasValue { get; private set; }
 
         public TLeft Left
         {
             get { return _left; }
-            set
+            private set
             {
                 _left = value;
                 LeftHasValue = true;
@@ -34,14 +34,14 @@ namespace Eru
         public TRight Right
         {
             get { return _right; }
-            set
+            private set
             {
                 _right = value;
                 RightHasValue = true;
             }
         }
 
-        protected bool Equals(Either<TLeft, TRight> other)
+        private bool Equals(Either<TLeft, TRight> other)
         {
             return EqualityComparer<TLeft>.Default.Equals(_left, other._left) ||
                    EqualityComparer<TRight>.Default.Equals(_right, other._right) && LeftHasValue == other.LeftHasValue ||
@@ -76,9 +76,27 @@ namespace Eru
         public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
             Func<TRight, Either<TLeft, TResult>> function)
         {
+            return Match(either,
+                left => new Either<TLeft, TResult>(left),
+                function);
+        }
+
+        public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
+            Func<TRight, TResult> function)
+        {
+            return Match(either,
+                left => new Either<TLeft, TResult>(left),
+                right => new Either<TLeft, TResult>(function(right)));
+        }
+
+        public static TResult Match<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> left,
+            Func<TRight, TResult> right)
+        {
+            if (right == null) throw new ArgumentNullException("right");
+            if (left == null) throw new ArgumentNullException("left");
             return either.LeftHasValue
-                ? new Either<TLeft, TResult>(either.Left)
-                : function(either.Right);
+                ? left(either.Left)
+                : right(either.Right);
         }
     }
 }
