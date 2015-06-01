@@ -13,7 +13,7 @@ namespace Eru.Tests
             private static readonly Func<int, int> AddTwo = x => Add(x, 2);
             private static readonly Either<Exception, int> F = 1.AsEither<Exception, int>();
 
-            public static Func<TSource, TResult> Compose<TSource, TIntermediate, TResult>(Func<TSource, TIntermediate> func1, Func<TIntermediate, TResult> func2)
+            private static Func<TSource, TResult> Compose<TSource, TIntermediate, TResult>(Func<TSource, TIntermediate> func1, Func<TIntermediate, TResult> func2)
             {
                 return source => func2(func1(source));
             }
