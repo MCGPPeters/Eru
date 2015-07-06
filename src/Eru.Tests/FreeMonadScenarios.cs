@@ -81,8 +81,7 @@ namespace Eru.Tests
     public class FreeMonadScenarios
     {
         [Fact]
-        public void Creating(int dividend, int divisor,
-            int result)
+        public void Creating()
         {
             
         }
