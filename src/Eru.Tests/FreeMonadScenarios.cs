@@ -4,12 +4,15 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Eru.Tests
 {
     public abstract class Primitive<TNext>
     {
-        protected Primitive() { }
+        protected Primitive()
+        {
+        }
     }
 
     public sealed class Create<TNext> : Primitive<TNext>
@@ -24,15 +27,35 @@ namespace Eru.Tests
         }
     }
 
+    public sealed class Send<TNext> : Primitive<TNext>
+    {
+        public object Message { get; set; }
+        public TNext Next { get; set; }
+
+        public Send(object message, TNext next)
+        {
+            Message = message;
+            Next = next;
+        }
+    }
+
     public static class PrimitiveExtension
     {
-        public static Primitive<TB> Select<TA, TB>(this Primitive<TA> primitive, Func<TA, TB> function)
+        public static Either<Exception, Primitive<TB>> Select<TA, TB>(this Primitive<TA> primitive,
+            Func<TA, TB> function)
         {
-            //if (primitive is Create<TA>)
-            //{
-            //    return new Create<TB>(primitive.Behavior, function(primitive.Value.Get));
-            //}
-            return null;
+            if (primitive is Create<TA>)
+            {
+                var create = (Create<TA>) primitive;
+                return new Either<Exception, Primitive<TB>>(new Create<TB>(create.Behavior, function(create.Next)));
+            }
+
+            if (primitive is Send<TA>)
+            {
+                var send = (Send<TA>) primitive;
+                return new Either<Exception, Primitive<TB>>(new Send<TB>(send.Message, function(send.Next)));
+            }
+            return new Either<Exception, Primitive<TB>>(new NotSupportedException());
         }
     }
 
@@ -40,13 +63,11 @@ namespace Eru.Tests
     {
     }
 
-   
 
-  public class Address
+
+    public class Address
     {
     }
-
-    public class Send<TResult> { }
 
     public class Pure<TResult>
     {
@@ -55,5 +76,15 @@ namespace Eru.Tests
     public class Operation<TResult>
     {
 
+    }
+
+    public class FreeMonadScenarios
+    {
+        [Fact]
+        public void Creating(int dividend, int divisor,
+            int result)
+        {
+            
+        }
     }
 }
