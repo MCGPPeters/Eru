@@ -4,6 +4,8 @@ namespace Eru
 {
     public struct Unit : IComparable<Unit>, IEquatable<Unit>
     {
+        public static readonly Unit Instance = new Unit();
+
         public int CompareTo(Unit other)
         {
             return 0;

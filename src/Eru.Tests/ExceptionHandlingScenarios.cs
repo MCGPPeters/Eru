@@ -80,7 +80,7 @@ namespace Eru.Tests
                 .While(predicate);
                 
             actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
-            i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any more");
+            i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace Eru.Tests
                 .WhileAsync(predicate);
                 
             actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
-            i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any more");
+            i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
         }
 
         [Fact]
