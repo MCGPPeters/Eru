@@ -3,58 +3,7 @@ using Xunit;
 
 namespace Eru.Tests
 {
-    //public static class PrimitiveExtension
-    //{
-    //    public static Actor<TB> Select<TA, TB>(this Actor<TA> primitive,
-    //        Func<TA, TB> function)
-    //    {
-    //        if (primitive is Create<TA>)
-    //        {
-    //            var create = (Create<TA>) primitive;
-    //            return new Create<TB>(create.Behavior, function(create.Next));
-    //        }
-
-    //        if (primitive is Send<TA>)
-    //        {
-    //            var send = (Send<TA>) primitive;
-    //            return new Send<TB>(send.Message, function(send.Next));
-    //        }
-    //    }
-    //}
-
-
-    public class FreeMonadScenarios
-    {
-        [Theory,
-         InlineData(true),
-         InlineData(333),
-         InlineData(new[] {true, true}),
-         InlineData("foo")]
-        public void Then_value_the_cell_is_holding_on_to_is_returned<T>(T expectedValue)
-        {
-            System.Create(new Cell<T>()).Send(new Set<T>()).
-                Given(() =>
-                {
-                    cell = theater.CreateActor(new CellBehavior<T>());
-                    var set = new Set<T>(expectedValue);
-                    theater.Dispatch(set, cell);
-                    customer = theater.CreateActor(new AssertionBehavior<Reply<T>>(taskCompletionSource, 1));
-                });
-
-            When(() =>
-            {
-                var get = new Get(customer);
-                theater.Dispatch(get, cell);
-            });
-
-            Then(async () =>
-            {
-                var actualValue = await taskCompletionSource.Task;
-                actualValue.Content.ShouldBeEquivalentTo(expectedValue);
-            });
-        }
-    }
-
+ 
     /*
           C# does not have proper sum types. They must be emulated.
 
@@ -85,13 +34,13 @@ namespace Eru.Tests
         internal class Send : Primitive<A>
         {
             private readonly A _a;
-            private readonly object _message;
             private readonly Address _address;
+            private readonly object _message;
 
             public Send(Address address, object message, A a)
             {
-                _message = message;
                 _address = address;
+                _message = message;
                 _a = a;
             }
 
@@ -197,7 +146,7 @@ namespace Eru.Tests
 
     public static class Actor
     {
-        public static FreePrimitive<Unit> Send<T>(T message)
+        public static FreePrimitive<Unit> Send<T>(Address address, T message)
         {
             return new Primitive<Unit>.Send(address, message, Unit.Instance).Lift;
         }
@@ -232,15 +181,6 @@ namespace Eru.Tests
 
     public static class PrimitiveInterpreter
     {
-        /*
-              CAUTION: This function is unsafe.
-              It is the "end of the (Grammar) world" interpreter.
-
-              Use this function to run the final terminal program.
-              Ideally, this function would be hypothetical and unavailable
-              to the programmer API (i.e. implemented in its own runtime).
-            */
-
         public static A Interpret<A>(this FreePrimitive<A> t)
         {
             return t.Fold(
@@ -256,6 +196,7 @@ namespace Eru.Tests
                     (address, message, next) =>
                     {
                         //send the message to the address
+                        Actor.Send(address, message);
                         return Interpret(next);
                     }
                 )
@@ -268,9 +209,9 @@ namespace Eru.Tests
         public static Unit Main()
         {
             var Program =
-                from _1 in Actor.Create(new Behavior())
-                from _2 in Actor.Send("foo")
-                select _2;
+                from cell in Actor.Create(new Behavior())
+                from _ in Actor.Send(cell, "foo")
+                select _;
 
             return Program.Interpret();
         }
