@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Eru.Control;
 using Eru.ExceptionHandling;
 using FluentAssertions;
 using Xunit;
@@ -83,6 +84,19 @@ namespace Eru.Tests
             i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
         }
 
+        //public void Retry_should_retry_only_when_the_call_fails()
+        //{
+        //    var expectedResult = new Either<Exception, int>(6);
+        //    var i = 0;
+        //    Predicate<int> predicate = i1 => 3 != i++;
+
+        //    var actualResult = 6
+        //        .When(new Condition<Conditions, int>(Conditions.OnlyRetryOnce, predicate), 
+                    
+        //    actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
+        //    i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
+        //}
+
         [Fact]
         public async Task Retry_can_run_asynchronously()
         {
@@ -115,5 +129,10 @@ namespace Eru.Tests
 
             actualResult.Should().Be(expectedResult, "Cannot open a connection without specifying a data source or server.");
         }
+    }
+
+    public enum Conditions
+    {
+        OnlyRetryOnce
     }
 }

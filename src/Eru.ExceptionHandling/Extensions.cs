@@ -66,17 +66,5 @@ namespace Eru.ExceptionHandling
                 });
             }
         }
-
-        public static Either<Exception, TResult> While<TResult>(this Either<Func<Func<bool>, Either<Exception, TResult>>, TResult> source,
-            Func<bool> predicate)
-        {
-            return source.LeftHasValue ? source.Left(predicate) : new Either<Exception, TResult>(source.Right);
-        }
-
-        public static async Task<Either<Exception, TResult>> WhileAsync<TResult>(this Either<Func<Func<bool>, Either<Exception, TResult>>, TResult> source,
-            Func<bool> predicate)
-        {
-            return source.LeftHasValue ? await Task.Run(() => source.Left(predicate)) : await Task.FromResult(new Either<Exception, TResult>(source.Right));
-        }
     }
 }
