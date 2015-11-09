@@ -80,10 +80,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControlFlowScenarios.cs" />
     <Compile Include="Either.Monad.Laws.cs" />
     <Compile Include="ExceptionHandlingScenarios.cs" />
-    <Compile Include="FreeMonadScenarios.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

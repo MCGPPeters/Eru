@@ -1,9 +1,7 @@
 ﻿using System;
-using Xunit;
 
 namespace Eru.Tests
 {
- 
     /*
           C# does not have proper sum types. They must be emulated.
 
@@ -186,21 +184,21 @@ namespace Eru.Tests
             return t.Fold(
                 a => a
                 , a => a.Fold
-                (
-                    (behavior, func) =>
-                    {
-                        var address = new Address(); //create actor using the behavior, return the address
-                        return Interpret(func(address));
-                    }
-                    ,
-                    (address, message, next) =>
-                    {
-                        //send the message to the address
-                        Actor.Send(address, message);
-                        return Interpret(next);
-                    }
-                )
-            );
+                    (
+                        (behavior, func) =>
+                        {
+                            var address = new Address(); //create actor using the behavior, return the address
+                            return Interpret(func(address));
+                        }
+                        ,
+                        (address, message, next) =>
+                        {
+                            //send the message to the address
+                            Actor.Send(address, message);
+                            return Interpret(next);
+                        }
+                    )
+                );
         }
     }
 

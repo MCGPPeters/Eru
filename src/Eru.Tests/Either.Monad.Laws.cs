@@ -8,7 +8,9 @@ namespace Eru.Tests
     {
         public class Laws
         {
-            private static readonly Func<int, int, Either<Exception, int>> Add = (x, y) => (x + y).AsEither<Exception, int>();
+            private static readonly Func<int, int, Either<Exception, int>> Add =
+                (x, y) => (x + y).AsEither<Exception, int>();
+
             private static readonly Func<int, Either<Exception, int>> AddOne = x => Add(x, 1);
             private static readonly Func<int, Either<Exception, int>> AddTwo = x => Add(x, 2);
             private static readonly Either<Exception, int> M = 1.AsEither<Exception, int>();
@@ -16,8 +18,8 @@ namespace Eru.Tests
             [Fact]
             public void Left_identity()
             {
-                Either<Exception, int> left = 1.AsEither<Exception, int>().Bind(AddOne);
-                Either<Exception, int> right = AddOne(1);
+                var left = 1.AsEither<Exception, int>().Bind(AddOne);
+                var right = AddOne(1);
 
                 left.Should().Be(right);
             }
