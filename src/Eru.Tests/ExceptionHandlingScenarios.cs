@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Eru.Control;
 using Eru.ExceptionHandling;
@@ -18,9 +19,9 @@ namespace Eru.Tests
         public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result(int dividend, int divisor,
             int result)
         {
-            var expectedResult = new Either<Exception, int>(result);
+            var expectedResult = new Either<Failure<Requirements>, int>(result);
 
-            var actualResult = dividend.Try(x => x/divisor);
+            var actualResult = dividend.Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException);
 
             actualResult.Should().Be(expectedResult);
         }
@@ -30,10 +31,23 @@ namespace Eru.Tests
         [InlineData(13)]
         public void Dividing_an_integer_by_zero_returns_an_exception(int dividend)
         {
-            var expectedResult = new Either<Exception, int>(new DivideByZeroException());
+            var expectedResult = new Either<Failure<Requirements>, int>(new FailureBecauseOfException<Requirements>(Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1), new DivideByZeroException()));
             int divisor = 0;
 
-            var actualResult = dividend.Try(x => x/divisor);
+            var actualResult = dividend.Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException);
+
+            actualResult.Should().Be(expectedResult, "Integers may not be divided by zero");
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(13)]
+        public void Dividing_an_integer_by_zero_returns_a_failure(int dividend)
+        {
+            var expectedResult = new Either<Failure<Requirements>, int>(new FailureBecauseOfException<Requirements>(Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1), new DivideByZeroException()));
+            int divisor = 0;
+
+            var actualResult = dividend.Try(x => x / divisor, Requirements.ShouldNotThrowDevideByZeroException);
 
             actualResult.Should().Be(expectedResult, "Integers may not be divided by zero");
         }
@@ -44,11 +58,11 @@ namespace Eru.Tests
         public void Chaining_of_try_blocks_is_possible_for_disparately_typed_return_values(int dividend, int divisor, double secondDivisor,
             double result)
         {
-            var expectedResult = new Either<Exception, double>(result);
+            var expectedResult = new Either<Failure<Requirements>, double>(result);
 
             var actualResult = dividend
-                .Try(x => x/divisor)
-                .Try(x => x/secondDivisor);
+                .Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException)
+                .Try(x => x/secondDivisor, Requirements.ShouldNotThrowDevideByZeroException);
 
             actualResult.Should().Be(expectedResult);
         }
@@ -56,13 +70,13 @@ namespace Eru.Tests
         [Fact]
         public void Retry_should_retry_calling_a_function_the_specified_number_of_times()
         {
-            var expectedResult = new Either<Exception, int>(new DivideByZeroException());
+            var expectedResult = new Either<Failure<Requirements>, int>(new FailureBecauseOfException<Requirements>(Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1), new DivideByZeroException()));
             var i = 0;
             var divisor = 0;
             Func<bool> predicate = () => 3 != i++;
             
             var actualResult = 6
-                .Retry(x => x/divisor)
+                .Retry(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException)
                 .While(predicate);
                 
             actualResult.Should().Be(expectedResult, "Division by zero is not allowed");
@@ -72,40 +86,27 @@ namespace Eru.Tests
         [Fact]
         public void Retry_should_retry_only_as_long_as_the_call_fails()
         {
-            var expectedResult = new Either<Exception, int>(6);
+            var expectedResult = new Either<Failure<Requirements>, int>(6);
             var i = 0;
             Func<bool> predicate = () => 3 != i++;
             
             var actualResult = 6
-                .Retry(x => x/i)
+                .Retry(x => x/i, Requirements.ShouldNotThrowDevideByZeroException)
                 .While(predicate);
                 
             actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
             i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
         }
 
-        //public void Retry_should_retry_only_when_the_call_fails()
-        //{
-        //    var expectedResult = new Either<Exception, int>(6);
-        //    var i = 0;
-        //    Predicate<int> predicate = i1 => 3 != i++;
-
-        //    var actualResult = 6
-        //        .When(new Condition<Conditions, int>(Conditions.OnlyRetryOnce, predicate), 
-                    
-        //    actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
-        //    i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
-        //}
-
         [Fact]
         public async Task Retry_can_run_asynchronously()
         {
-            var expectedResult = new Either<Exception, int>(6);
+            var expectedResult = new Either<Failure<Requirements>, int>(6);
             var i = 0;
             Func<bool> predicate = () => 3 != i++;
             
             var actualResult = await 6
-                .Retry(x => x/i)
+                .Retry(x => x/i, Requirements.ShouldNotThrowDevideByZeroException)
                 .WhileAsync(predicate);
                 
             actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
@@ -115,7 +116,7 @@ namespace Eru.Tests
         [Fact]
         public async Task Trying_to_connect_to_a_non_existing_SQL_database_as_a_real_world_example_will_fail()
         {
-            var expectedResult = new Either<Exception, SqlConnection>(new InvalidOperationException());
+            var expectedResult = new Either<Failure<Requirements>, SqlConnection>(new FailureBecauseOfException<Requirements>(Enumerable.Repeat(Requirements.ShouldNotThrowInvalidOperationException, 1), new InvalidOperationException()));
             var i = 0;
             Func<bool> predicate = () => 3 != i++;
 
@@ -124,15 +125,16 @@ namespace Eru.Tests
                 {
                     connection.Open();
                     return connection;
-                })
+                }, Requirements.ShouldNotThrowInvalidOperationException)
                 .WhileAsync(predicate);
 
             actualResult.Should().Be(expectedResult, "Cannot open a connection without specifying a data source or server.");
         }
     }
 
-    public enum Conditions
+    public enum Requirements
     {
-        OnlyRetryOnce
+        ShouldNotThrowDevideByZeroException,
+        ShouldNotThrowInvalidOperationException
     }
 }
