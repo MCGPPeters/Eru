@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading.Tasks;
 using Eru.Control;
 using Eru.ExceptionHandling;
 using FluentAssertions;
+using FsCheck;
+using FsCheck.Xunit;
 using Xunit;
+// ReSharper disable EqualExpressionComparison
 
 namespace Eru.Tests
 {
@@ -14,102 +18,107 @@ namespace Eru.Tests
         Justification = "Using a const integer as a divisor will cause a compile time error")]
     public class ExceptionHandlingScenarios
     {
-        [Theory]
-        [InlineData(6, 2, 3)]
-        [InlineData(8, 2, 4)]
-        public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result(int dividend, int divisor,
-            int result)
+
+        [Fact]
+        public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result()
         {
-            var expectedResult = new Either<Failure<Requirements>, int>(result);
+            Prop.ForAll<int, int>((divisor, dividend) => 
+                new Func<bool>(() =>
+                {
+                    var expectedResult = new Either<Failure<Requirements>, int>(dividend/divisor);
 
-            var actualResult = dividend.Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException);
+                    var actualResult = dividend
+                        .Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException);
 
-            actualResult.Should().Be(expectedResult);
-        }
-
-        [Theory]
-        [InlineData(1)]
-        [InlineData(13)]
-        public void Dividing_an_integer_by_zero_returns_an_exception(int dividend)
-        {
-            var expectedResult =
-                new Either<Failure<Requirements>, int>(
-                    new FailureBecauseOfException<Requirements>(
-                        Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1),
-                        new DivideByZeroException()));
-            var divisor = 0;
-
-            var actualResult = dividend.Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException);
-
-            actualResult.Should().Be(expectedResult, "Integers may not be divided by zero");
-        }
-
-        [Theory]
-        [InlineData(1)]
-        [InlineData(13)]
-        public void Dividing_an_integer_by_zero_returns_a_failure(int dividend)
-        {
-            var expectedResult =
-                new Either<Failure<Requirements>, int>(
-                    new FailureBecauseOfException<Requirements>(
-                        Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1),
-                        new DivideByZeroException()));
-            var divisor = 0;
-
-            var actualResult = dividend.Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException);
-
-            actualResult.Should().Be(expectedResult, "Integers may not be divided by zero");
-        }
-
-        [Theory]
-        [InlineData(6, 2, 3.0, 1.0)]
-        [InlineData(16, 2, 4.0, 2.0)]
-        public void Chaining_of_try_blocks_is_possible_for_disparately_typed_return_values(int dividend, int divisor,
-            double secondDivisor,
-            double result)
-        {
-            var expectedResult = new Either<Failure<Requirements>, double>(result);
-
-            var actualResult = dividend
-                .Try(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException)
-                .Try(x => x/secondDivisor, Requirements.ShouldNotThrowDevideByZeroException);
-
-            actualResult.Should().Be(expectedResult);
+                    return actualResult.Equals(expectedResult);
+                })
+            .When(divisor != 0)
+            .QuickCheckThrowOnFailure());
         }
 
         [Fact]
-        public void Retry_should_retry_calling_a_function_the_specified_number_of_times()
+        public void Dividing_an_integer_by_zero_returns_an_exception()
         {
-            var expectedResult =
-                new Either<Failure<Requirements>, int>(
-                    new FailureBecauseOfException<Requirements>(
-                        Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1),
-                        new DivideByZeroException()));
-            var i = 0;
-            var divisor = 0;
-            Func<bool> predicate = () => 3 != i++;
+            Prop.ForAll<int, int>((divisor, dividend) =>
+                new Func<bool>(() =>
+                {
+                    var expectedResult =
+                        new Either<Failure<Requirements>, int>(
+                            new FailureBecauseOfException<Requirements>(
+                                Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1),
+                                new DivideByZeroException()));
 
-            var actualResult = 6
-                .Retry(x => x/divisor, Requirements.ShouldNotThrowDevideByZeroException)
-                .While(predicate);
+                    var actualResult = dividend
+                        .Try(x => x / divisor, Requirements.ShouldNotThrowDevideByZeroException);
 
-            actualResult.Should().Be(expectedResult, "Division by zero is not allowed");
-            i.Should().Be(4, "The function call should be retried 3 times");
+                    return actualResult.Equals(expectedResult);
+                })
+            .When(divisor == 0)
+            .QuickCheckThrowOnFailure());
+        }
+
+        [Fact]
+        public void Chaining_of_try_blocks_is_possible_for_disparately_typed_return_values()
+        {
+            Prop.ForAll<int, int, int>((dividend, divisor, secondDivisor) => 
+                new Func<bool>(() =>
+                {
+                    var expectedResult = new Either<Failure<Requirements>, int>(dividend/divisor/secondDivisor);
+
+                    var actualResult = dividend
+                        .Try(x => x / divisor, Requirements.ShouldNotThrowDevideByZeroException)
+                        .Try(x => x / secondDivisor, Requirements.ShouldNotThrowDevideByZeroException);
+
+                    return actualResult.Equals(expectedResult);
+                })
+            .When(divisor != 0)
+            .QuickCheckThrowOnFailure());
+        }
+
+        [Fact]
+        public void Retry_should_return_the_expected_failure_when_the_condition_does_not_hold()
+        {
+            Prop.ForAll<int, int>((retry, divisor) =>
+                new Func<bool>(() =>
+                {
+                    var expectedResult =
+                        new Either<Failure<Requirements>, int>(
+                            new FailureBecauseOfException<Requirements>(
+                                Enumerable.Repeat(Requirements.ShouldNotThrowDevideByZeroException, 1),
+                                new DivideByZeroException()));
+
+                    var retryCount = 0;
+                    Func<bool> retryPolicy = () => retry != retryCount++;
+
+                    var actualResult = 6
+                        .Retry(x => x / divisor, Requirements.ShouldNotThrowDevideByZeroException)
+                        .While(retryPolicy);
+
+                    return actualResult.Equals(expectedResult) && retry == retryCount + 1;
+                })
+            .When(divisor != 0)
+            .QuickCheckThrowOnFailure());
         }
 
         [Fact]
         public void Retry_should_retry_only_as_long_as_the_call_fails()
         {
-            var expectedResult = new Either<Failure<Requirements>, int>(6);
-            var i = 0;
-            Func<bool> predicate = () => 3 != i++;
+            Prop.ForAll<int, int>((retry, dividend) =>
+               new Func<bool>(() =>
+               {
+                   var retryCount = 1;
+                   Func<bool> retryPolicy = () => retry != retryCount++;
 
-            var actualResult = 6
-                .Retry(x => x/i, Requirements.ShouldNotThrowDevideByZeroException)
-                .While(predicate);
+                   var expectedResult = new Either<Failure<Requirements>, int>(dividend / retryCount);
 
-            actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
-            i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
+                   var actualResult = dividend
+                       .Retry(x => x / retryCount, Requirements.ShouldNotThrowDevideByZeroException)
+                       .While(retryPolicy);
+
+                   return actualResult.Equals(expectedResult) && retry == retryCount + 1;
+               })
+           .When(retry != 0)
+           .QuickCheckThrowOnFailure());
         }
 
         [Fact]
