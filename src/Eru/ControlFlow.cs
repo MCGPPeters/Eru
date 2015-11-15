@@ -1,18 +1,18 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Eru.Control
+namespace Eru
 {
-    public static class Extensions
+    public static class ControlFlow
     {
         public static Either<TLeft, TRight> While<TLeft, TRight>(
             this Either<Func<Func<bool>, Either<TLeft, TRight>>, TRight> source,
             Func<bool> predicate)
         {
-            return Where(source, predicate);
+            return When(source, predicate);
         }
 
-        public static Either<TLeft, TRight> Where<TLeft, TRight>(
+        private static Either<TLeft, TRight> When<TLeft, TRight>(
             Either<Func<Func<bool>, Either<TLeft, TRight>>, TRight> source, Func<bool> predicate)
         {
             return source
@@ -25,10 +25,10 @@ namespace Eru.Control
             this Either<Func<Func<bool>, Either<TLeft, TRight>>, TRight> source,
             Func<bool> predicate)
         {
-            return await WhereAsync(source, predicate);
+            return await WhenAsync(source, predicate);
         }
 
-        public static async Task<Either<TLeft, TRight>> WhereAsync<TLeft, TRight>(
+        private static async Task<Either<TLeft, TRight>> WhenAsync<TLeft, TRight>(
             Either<Func<Func<bool>, Either<TLeft, TRight>>, TRight> source, Func<bool> predicate)
         {
             return await source.Match(

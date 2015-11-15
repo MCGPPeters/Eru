@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Eru.ExceptionHandling
+namespace Eru
 {
     public class FailureBecauseOfException<T> : Failure<T>
     {
