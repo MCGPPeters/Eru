@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Eru.ExceptionHandling
+namespace Eru.ErrorHandling
 {
-    public static class Extensions
+    public static class ExceptionHandling
     {
         public static Either<Failure<TCauseIdentifier>, TResult> Try<TSource, TCauseIdentifier, TResult>(
             this TSource source, IEnumerable<Error<TCauseIdentifier>> knownPossibleErrors,
@@ -21,7 +21,7 @@ namespace Eru.ExceptionHandling
 
         public static Either<Failure<TCauseIdentifier>, TResult> Try<TSource, TCauseIdentifier, TResult>(
             this Either<Failure<TCauseIdentifier>, TSource> either,
-             IEnumerable<Error<TCauseIdentifier>> knownPossibleErrors, Func<TSource, TResult> function)
+            IEnumerable<Error<TCauseIdentifier>> knownPossibleErrors, Func<TSource, TResult> function)
         {
             return either.Bind(item => TryCatch(item, knownPossibleErrors, function));
         }
@@ -30,7 +30,9 @@ namespace Eru.ExceptionHandling
             this Either<Failure<TCauseIdentifier>, TSource> either, Func<TSource, TResult> function,
             TCauseIdentifier causeIdentifier)
         {
-            return either.Bind(item => TryCatch(item, new Error<TCauseIdentifier>(causeIdentifier, new Exception()), function));
+            return
+                either.Bind(
+                    item => TryCatch(item, new Error<TCauseIdentifier>(causeIdentifier, new Exception()), function));
         }
 
         private static Either<Failure<TCauseIdentifier>, TResult> TryCatch<TSource, TCauseIdentifier, TResult>(
@@ -70,8 +72,8 @@ namespace Eru.ExceptionHandling
                 Func<TSource, TResult> guarded, TCauseIdentifier causeIdentifier)
         {
             return
-                source.AsEither<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TSource>()
-                    .Retry(guarded, causeIdentifier);
+                Retry(source.AsEither<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TSource>(), guarded,
+                    causeIdentifier);
         }
 
         public static Either<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TResult> Retry

@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Eru.ExceptionHandling
+namespace Eru.ErrorHandling
 {
-    public class Failure<TCauseIdentifier> : IEqualityComparer<Failure<TCauseIdentifier>>, IEquatable<Failure<TCauseIdentifier>>
+    public class Failure<TCauseIdentifier> : IEqualityComparer<Failure<TCauseIdentifier>>,
+        IEquatable<Failure<TCauseIdentifier>>
     {
-        public IEnumerable<TCauseIdentifier> CauseIdentifiers { get; private set; }
-
         public Failure(IEnumerable<TCauseIdentifier> causeIdentifiers)
         {
             CauseIdentifiers = causeIdentifiers;
@@ -18,11 +17,13 @@ namespace Eru.ExceptionHandling
             CauseIdentifiers = Enumerable.Repeat(causeIdentifiers, 1);
         }
 
+        public IEnumerable<TCauseIdentifier> CauseIdentifiers { get; }
+
         public bool Equals(Failure<TCauseIdentifier> x, Failure<TCauseIdentifier> y)
         {
             return x.CauseIdentifiers
                 .All(identifier => y.CauseIdentifiers
-                .Any(causeIdentifier => causeIdentifier.Equals(identifier)));
+                    .Any(causeIdentifier => causeIdentifier.Equals(identifier)));
         }
 
         public int GetHashCode(Failure<TCauseIdentifier> obj)

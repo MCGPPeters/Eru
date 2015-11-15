@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Threading.Tasks;
 using Eru.Control;
-using Eru.ExceptionHandling;
+using Eru.ErrorHandling;
 using FluentAssertions;
 using FsCheck;
-using FsCheck.Xunit;
 using Xunit;
+
 // ReSharper disable EqualExpressionComparison
 
 namespace Eru.Tests
@@ -38,7 +36,7 @@ namespace Eru.Tests
         [Fact]
         public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result()
         {
-            Prop.ForAll<int, int>((divisor, dividend) => 
+            Prop.ForAll<int, int>((divisor, dividend) =>
                 new Func<bool>(() =>
                 {
                     var expectedResult = new Either<Failure<Exception>, int>(dividend/divisor);
@@ -48,8 +46,8 @@ namespace Eru.Tests
 
                     return actualResult.Equals(expectedResult);
                 })
-            .When(divisor != 0)
-            .QuickCheckThrowOnFailure());
+                    .When(divisor != 0)
+                    .QuickCheckThrowOnFailure());
         }
 
         [Fact]
@@ -63,30 +61,30 @@ namespace Eru.Tests
                             new Failure<Exception>(new[] {Exception.DivisionByZero}));
 
                     var actualResult = dividend
-                        .Try(x => x / divisor, Exception.DivisionByZero);
+                        .Try(x => x/divisor, Exception.DivisionByZero);
 
                     return actualResult.Equals(expectedResult);
                 })
-            .When(divisor == 0)
-            .QuickCheckThrowOnFailure());
+                    .When(divisor == 0)
+                    .QuickCheckThrowOnFailure());
         }
 
         [Fact]
         public void Chaining_of_try_blocks_is_possible_for_disparately_typed_return_values()
         {
-            Prop.ForAll<int, int, int>((dividend, divisor, secondDivisor) => 
+            Prop.ForAll<int, int, int>((dividend, divisor, secondDivisor) =>
                 new Func<bool>(() =>
                 {
                     var expectedResult = new Either<Failure<Exception>, int>(dividend/divisor/secondDivisor);
 
                     var actualResult = dividend
-                        .Try(x => x / divisor, Exception.DivisionByZero)
-                        .Try(x => x / secondDivisor, Exception.DivisionByZero);
+                        .Try(x => x/divisor, Exception.DivisionByZero)
+                        .Try(x => x/secondDivisor, Exception.DivisionByZero);
 
                     return actualResult.Equals(expectedResult);
                 })
-            .When(divisor != 0)
-            .QuickCheckThrowOnFailure());
+                    .When(divisor != 0)
+                    .QuickCheckThrowOnFailure());
         }
 
         [Fact]
@@ -97,40 +95,40 @@ namespace Eru.Tests
                 {
                     var expectedResult =
                         new Either<Failure<Exception>, int>(
-                            new Failure<Exception>(new[] { Exception.DivisionByZero }));
+                            new Failure<Exception>(new[] {Exception.DivisionByZero}));
 
                     var retryCount = 0;
                     Func<bool> retryPolicy = () => retry != retryCount++;
 
                     var actualResult = 6
-                        .Retry(x => x / divisor, Exception.DivisionByZero)
+                        .Retry(x => x/divisor, Exception.DivisionByZero)
                         .While(retryPolicy);
 
                     return actualResult.Equals(expectedResult) && retry == retryCount + 1;
                 })
-            .When(divisor != 0)
-            .QuickCheckThrowOnFailure());
+                    .When(divisor != 0)
+                    .QuickCheckThrowOnFailure());
         }
 
         [Fact]
         public void Retry_should_retry_only_as_long_as_the_call_fails()
         {
             Prop.ForAll<int, int>((retry, dividend) =>
-               new Func<bool>(() =>
-               {
-                   var retryCount = 1;
-                   Func<bool> retryPolicy = () => retry != retryCount++;
+                new Func<bool>(() =>
+                {
+                    var retryCount = 1;
+                    Func<bool> retryPolicy = () => retry != retryCount++;
 
-                   var expectedResult = new Either<Failure<Exception>, int>(dividend / retryCount);
+                    var expectedResult = new Either<Failure<Exception>, int>(dividend/retryCount);
 
-                   var actualResult = dividend
-                       .Retry(x => x / retryCount, Exception.DivisionByZero)
-                       .While(retryPolicy);
+                    var actualResult = dividend
+                        .Retry(x => x/retryCount, Exception.DivisionByZero)
+                        .While(retryPolicy);
 
-                   return actualResult.Equals(expectedResult) && retry == retryCount + 1;
-               })
-           .When(retry != 0)
-           .QuickCheckThrowOnFailure());
+                    return actualResult.Equals(expectedResult) && retry == retryCount + 1;
+                })
+                    .When(retry != 0)
+                    .QuickCheckThrowOnFailure());
         }
 
         [Fact]

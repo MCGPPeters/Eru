@@ -2,17 +2,17 @@
 
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
-    <id>Eru</id>
+    <id>Eru.ErrorHandling</id>
     <version>$version$</version>
-    <title>Eru</title>
+    <title>Eru.ErrorHandling</title>
     <authors>Maurice CGP Peters</authors>
     <owners>Maurice CGP Peters</owners>
     <licenseUrl>https://github.com/MCGPPeters/Eru/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/MCGPPeters/Eru</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>A library holding monad type structures and operations</description>
+    <description>A library holding error handling operations based on the either monad</description>
     <releaseNotes />
     <copyright>Copyright 2015</copyright>
-    <tags>Monad Either</tags>
+    <tags>Monad Either Validation Exception Handling Error</tags>
   </metadata>
 </package>

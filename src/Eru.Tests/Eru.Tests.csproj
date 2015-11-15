@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Eru.Tests</RootNamespace>
     <AssemblyName>Eru.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -94,9 +95,9 @@
       <Project>{DA67E1E5-C7F6-4B16-8359-E70C554AC4C6}</Project>
       <Name>Eru.Control</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Eru.ExceptionHandling\Eru.ExceptionHandling.csproj">
-      <Project>{068800df-84bb-430f-b7cb-c31a178d293c}</Project>
-      <Name>Eru.ExceptionHandling</Name>
+    <ProjectReference Include="..\Eru.ErrorHandling\Eru.ErrorHandling.csproj">
+      <Project>{C06604D0-647D-4CA6-BA67-068745589EF1}</Project>
+      <Name>Eru.ErrorHandling</Name>
     </ProjectReference>
     <ProjectReference Include="..\Eru\Eru.csproj">
       <Project>{12eef6cc-0a95-42b7-ab7d-20ecdc1f3205}</Project>
