@@ -24,14 +24,14 @@ namespace Eru.Tests
 
         public ExceptionHandlingScenarios()
         {
-            Errors = new[]
+            Exceptions = new[]
             {
-                new Error<Exception>(Exception.DivisionByZero, new DivideByZeroException()),
-                new Error<Exception>(Exception.InvalidOperation, new InvalidOperationException())
+                new Exception<Exception>(Exception.DivisionByZero, new DivideByZeroException()),
+                new Exception<Exception>(Exception.InvalidOperation, new InvalidOperationException())
             };
         }
 
-        public Error<Exception>[] Errors { get; set; }
+        public Exception<Exception>[] Exceptions { get; set; }
 
         [Fact]
         public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result()
@@ -61,7 +61,7 @@ namespace Eru.Tests
                             new Failure<Exception>(new[] {Exception.DivisionByZero}));
 
                     var actualResult = dividend
-                        .Try(x => x/divisor, Exception.DivisionByZero);
+                        .Try(x => x/divisor, handleThisException: Exception.DivisionByZero);
 
                     return actualResult.Equals(expectedResult);
                 })
@@ -78,8 +78,8 @@ namespace Eru.Tests
                     var expectedResult = new Either<Failure<Exception>, int>(dividend/divisor/secondDivisor);
 
                     var actualResult = dividend
-                        .Try(x => x/divisor, Exception.DivisionByZero)
-                        .Try(x => x/secondDivisor, Exception.DivisionByZero);
+                        .Try(x => x/divisor, handleThisException: Exception.DivisionByZero)
+                        .Try(x => x/secondDivisor, handleThisException: Exception.DivisionByZero);
 
                     return actualResult.Equals(expectedResult);
                 })

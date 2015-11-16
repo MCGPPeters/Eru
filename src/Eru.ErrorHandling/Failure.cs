@@ -12,9 +12,9 @@ namespace Eru.ErrorHandling
             CauseIdentifiers = causeIdentifiers;
         }
 
-        public Failure(TCauseIdentifier causeIdentifiers)
+        public Failure(TCauseIdentifier causeIdentifier)
         {
-            CauseIdentifiers = Enumerable.Repeat(causeIdentifiers, 1);
+            CauseIdentifiers = Enumerable.Repeat(causeIdentifier, 1);
         }
 
         public IEnumerable<TCauseIdentifier> CauseIdentifiers { get; }
@@ -28,7 +28,7 @@ namespace Eru.ErrorHandling
 
         public int GetHashCode(Failure<TCauseIdentifier> obj)
         {
-            return (CauseIdentifiers != null ? CauseIdentifiers.GetHashCode() : 0);
+            return CauseIdentifiers != null ? CauseIdentifiers.GetHashCode() : 0;
         }
 
         public bool Equals(Failure<TCauseIdentifier> other)

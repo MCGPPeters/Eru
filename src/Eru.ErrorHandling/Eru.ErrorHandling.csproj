@@ -41,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assertion.cs" />
-    <Compile Include="Error.cs" />
+    <Compile Include="Exception.cs" />
     <Compile Include="ExceptionHandling.cs" />
     <Compile Include="Failure.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

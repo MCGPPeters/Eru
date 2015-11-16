@@ -6,100 +6,100 @@ namespace Eru.ErrorHandling
 {
     public static class ExceptionHandling
     {
-        public static Either<Failure<TCauseIdentifier>, TResult> Try<TSource, TCauseIdentifier, TResult>(
-            this TSource source, IEnumerable<Error<TCauseIdentifier>> knownPossibleErrors,
+        public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
+            this TSource source, IEnumerable<Exception<TExceptionIdentifier>> handleTheseExceptions,
             Func<TSource, TResult> function)
         {
-            return Try(new Either<Failure<TCauseIdentifier>, TSource>(source), knownPossibleErrors, function);
+            return Try(new Either<Failure<TExceptionIdentifier>, TSource>(source), handleTheseExceptions, function);
         }
 
-        public static Either<Failure<TCauseIdentifier>, TResult> Try<TSource, TCauseIdentifier, TResult>(
-            this TSource source, Func<TSource, TResult> function, TCauseIdentifier causeIdentifier)
+        public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
+            this TSource source, Func<TSource, TResult> function, TExceptionIdentifier handleThisException)
         {
-            return Try(new Either<Failure<TCauseIdentifier>, TSource>(source), function, causeIdentifier);
+            return Try(new Either<Failure<TExceptionIdentifier>, TSource>(source), function, handleThisException);
         }
 
-        public static Either<Failure<TCauseIdentifier>, TResult> Try<TSource, TCauseIdentifier, TResult>(
-            this Either<Failure<TCauseIdentifier>, TSource> either,
-            IEnumerable<Error<TCauseIdentifier>> knownPossibleErrors, Func<TSource, TResult> function)
+        public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
+            this Either<Failure<TExceptionIdentifier>, TSource> either,
+            IEnumerable<Exception<TExceptionIdentifier>> handleTheseExceptions, Func<TSource, TResult> function)
         {
-            return either.Bind(item => TryCatch(item, knownPossibleErrors, function));
+            return either.Bind(item => TryCatch(item, handleTheseExceptions, function));
         }
 
-        public static Either<Failure<TCauseIdentifier>, TResult> Try<TSource, TCauseIdentifier, TResult>(
-            this Either<Failure<TCauseIdentifier>, TSource> either, Func<TSource, TResult> function,
-            TCauseIdentifier causeIdentifier)
+        public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
+            this Either<Failure<TExceptionIdentifier>, TSource> either, Func<TSource, TResult> function,
+            TExceptionIdentifier handleThisException)
         {
             return
                 either.Bind(
-                    item => TryCatch(item, new Error<TCauseIdentifier>(causeIdentifier, new Exception()), function));
+                    item => TryCatch(item, new Exception<TExceptionIdentifier>(handleThisException, new Exception()), function));
         }
 
-        private static Either<Failure<TCauseIdentifier>, TResult> TryCatch<TSource, TCauseIdentifier, TResult>(
-            TSource source, IEnumerable<Error<TCauseIdentifier>> knownPossibleErrors,
+        private static Either<Failure<TExceptionIdentifier>, TResult> TryCatch<TSource, TExceptionIdentifier, TResult>(
+            TSource source, IEnumerable<Exception<TExceptionIdentifier>> handleTheseExceptions,
             Func<TSource, TResult> function)
         {
             try
             {
-                return new Either<Failure<TCauseIdentifier>, TResult>(function(source));
+                return new Either<Failure<TExceptionIdentifier>, TResult>(function(source));
             }
             catch (Exception ex)
             {
                 var caughtExceptionType = ex.GetType();
 
-                var errorsToHandle = knownPossibleErrors
+                var exceptionsToHandle = handleTheseExceptions
                     .Where(exception => caughtExceptionType.IsInstanceOfType(ex))
                     .Select(error => error.Identifier).ToArray();
 
-                if (errorsToHandle.Any())
+                if (exceptionsToHandle.Any())
                 {
                     return
-                        new Either<Failure<TCauseIdentifier>, TResult>(
-                            new Failure<TCauseIdentifier>(errorsToHandle));
+                        new Either<Failure<TExceptionIdentifier>, TResult>(
+                            new Failure<TExceptionIdentifier>(exceptionsToHandle));
                 }
                 throw;
             }
         }
 
-        private static Either<Failure<TCauseIdentifier>, TResult> TryCatch<TSource, TCauseIdentifier, TResult>(
-            TSource source, Error<TCauseIdentifier> knownPossibleError, Func<TSource, TResult> function)
+        private static Either<Failure<TExceptionIdentifier>, TResult> TryCatch<TSource, TExceptionIdentifier, TResult>(
+            TSource source, Exception<TExceptionIdentifier> handleThisException, Func<TSource, TResult> function)
         {
-            return TryCatch(source, Enumerable.Repeat(knownPossibleError, 1), function);
+            return TryCatch(source, Enumerable.Repeat(handleThisException, 1), function);
         }
 
-        public static Either<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TResult> Retry
-            <TSource, TCauseIdentifier, TResult>(this TSource source,
-                Func<TSource, TResult> guarded, TCauseIdentifier causeIdentifier)
+        public static Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult> Retry
+            <TSource, TExceptionIdentifier, TResult>(this TSource source,
+                Func<TSource, TResult> guarded, TExceptionIdentifier handleThisException)
         {
             return
-                Retry(source.AsEither<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TSource>(), guarded,
-                    causeIdentifier);
+                Retry(source.AsEither<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TSource>(), guarded,
+                    handleThisException);
         }
 
-        public static Either<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TResult> Retry
-            <TSource, TCauseIdentifier, TResult>(
-            this Either<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TSource> source,
-            Func<TSource, TResult> guarded, TCauseIdentifier causeIdentifier)
+        public static Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult> Retry
+            <TSource, TExceptionIdentifier, TResult>(
+            this Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TSource> source,
+            Func<TSource, TResult> guarded, TExceptionIdentifier handleThisException)
         {
-            return source.Bind(value => RetryCatch(value, guarded, causeIdentifier));
+            return source.Bind(value => RetryCatch(value, guarded, handleThisException));
         }
 
-        private static Either<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TResult> RetryCatch
-            <TSource, TCauseIdentifier, TResult>(TSource source,
-                Func<TSource, TResult> guarded, TCauseIdentifier causeIdentifier)
+        private static Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult> RetryCatch
+            <TSource, TExceptionIdentifier, TResult>(TSource source,
+                Func<TSource, TResult> guarded, TExceptionIdentifier handleThisException)
         {
             try
             {
-                return new Either<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TResult>(guarded(source));
+                return new Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult>(guarded(source));
             }
             catch (Exception)
             {
-                return new Either<Func<Func<bool>, Either<Failure<TCauseIdentifier>, TResult>>, TResult>(predicate =>
+                return new Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult>(predicate =>
                 {
-                    var result = default(Either<Failure<TCauseIdentifier>, TResult>);
+                    var result = default(Either<Failure<TExceptionIdentifier>, TResult>);
                     while (predicate())
                     {
-                        result = source.Try(guarded, causeIdentifier);
+                        result = source.Try(guarded, handleThisException);
                         if (result.RightHasValue) break;
                     }
                     return result;
