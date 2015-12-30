@@ -7,36 +7,22 @@ namespace Eru.ErrorHandling
     public static class ExceptionHandling
     {
         public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
-            this TSource source, IEnumerable<Exception<TExceptionIdentifier>> handleTheseExceptions,
-            Func<TSource, TResult> function)
+            this TSource source, Func<TSource, TResult> function, TExceptionIdentifier exceptionIdentifier)
         {
-            return Try(new Either<Failure<TExceptionIdentifier>, TSource>(source), handleTheseExceptions, function);
-        }
-
-        public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
-            this TSource source, Func<TSource, TResult> function, TExceptionIdentifier handleThisException)
-        {
-            return Try(new Either<Failure<TExceptionIdentifier>, TSource>(source), function, handleThisException);
-        }
-
-        public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
-            this Either<Failure<TExceptionIdentifier>, TSource> either,
-            IEnumerable<Exception<TExceptionIdentifier>> handleTheseExceptions, Func<TSource, TResult> function)
-        {
-            return either.Bind(item => TryCatch(item, handleTheseExceptions, function));
+            return Try(new Either<Failure<TExceptionIdentifier>, TSource>(source), function, exceptionIdentifier);
         }
 
         public static Either<Failure<TExceptionIdentifier>, TResult> Try<TSource, TExceptionIdentifier, TResult>(
             this Either<Failure<TExceptionIdentifier>, TSource> either, Func<TSource, TResult> function,
-            TExceptionIdentifier handleThisException)
+            TExceptionIdentifier exceptionIdentifier)
         {
             return
                 either.Bind(
-                    item => TryCatch(item, new Exception<TExceptionIdentifier>(handleThisException, new Exception()), function));
+                    item => TryCatch(item, exceptionIdentifier, function));
         }
 
         private static Either<Failure<TExceptionIdentifier>, TResult> TryCatch<TSource, TExceptionIdentifier, TResult>(
-            TSource source, IEnumerable<Exception<TExceptionIdentifier>> handleTheseExceptions,
+            TSource source, TExceptionIdentifier exceptionIdentifier,
             Func<TSource, TResult> function)
         {
             try
@@ -45,35 +31,19 @@ namespace Eru.ErrorHandling
             }
             catch (Exception ex)
             {
-                var caughtExceptionType = ex.GetType();
-
-                var exceptionsToHandle = handleTheseExceptions
-                    .Where(exception => caughtExceptionType.IsInstanceOfType(ex))
-                    .Select(error => error.Identifier).ToArray();
-
-                if (exceptionsToHandle.Any())
-                {
-                    return
-                        new Either<Failure<TExceptionIdentifier>, TResult>(
-                            new Failure<TExceptionIdentifier>(exceptionsToHandle));
-                }
-                throw;
+                return
+                    new Either<Failure<TExceptionIdentifier>, TResult>(
+                        new Exception<TExceptionIdentifier>(exceptionIdentifier, ex));
             }
-        }
-
-        private static Either<Failure<TExceptionIdentifier>, TResult> TryCatch<TSource, TExceptionIdentifier, TResult>(
-            TSource source, Exception<TExceptionIdentifier> handleThisException, Func<TSource, TResult> function)
-        {
-            return TryCatch(source, Enumerable.Repeat(handleThisException, 1), function);
         }
 
         public static Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult> Retry
             <TSource, TExceptionIdentifier, TResult>(this TSource source,
-                Func<TSource, TResult> guarded, TExceptionIdentifier handleThisException)
+                Func<TSource, TResult> guarded, TExceptionIdentifier exceptionIdentifier)
         {
             return
                 Retry(source.AsEither<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TSource>(), guarded,
-                    handleThisException);
+                    exceptionIdentifier);
         }
 
         public static Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult> Retry
@@ -86,7 +56,7 @@ namespace Eru.ErrorHandling
 
         private static Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult> RetryCatch
             <TSource, TExceptionIdentifier, TResult>(TSource source,
-                Func<TSource, TResult> guarded, TExceptionIdentifier handleThisException)
+                Func<TSource, TResult> guarded, TExceptionIdentifier exceptionIdentifier)
         {
             try
             {
@@ -99,7 +69,7 @@ namespace Eru.ErrorHandling
                     var result = default(Either<Failure<TExceptionIdentifier>, TResult>);
                     while (predicate())
                     {
-                        result = source.Try(guarded, handleThisException);
+                        result = source.Try(guarded, exceptionIdentifier);
                         if (result.RightHasValue) break;
                     }
                     return result;

@@ -2,9 +2,9 @@
 
 namespace Eru.ErrorHandling
 {
-    public class Exception<TExceptionIdentifier>
+    public class Exception<TExceptionIdentifier> : Failure<TExceptionIdentifier>
     {
-        public Exception(TExceptionIdentifier identifier, Exception ex)
+        public Exception(TExceptionIdentifier identifier, Exception ex) : base(identifier)
         {
             Identifier = identifier;
             Ex = ex;

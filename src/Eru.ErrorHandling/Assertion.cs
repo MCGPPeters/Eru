@@ -4,11 +4,11 @@ namespace Eru.ErrorHandling
 {
     public class Assertion<TIdentifier, TSubject>
     {
-        private readonly Predicate<TSubject> _rule;
+        private readonly Predicate<TSubject> _predicate;
 
-        public Assertion(TIdentifier identifier, Predicate<TSubject> rule)
+        public Assertion(TIdentifier identifier, Predicate<TSubject> predicate)
         {
-            _rule = rule;
+            _predicate = predicate;
             Identifier = identifier;
         }
 
@@ -16,7 +16,7 @@ namespace Eru.ErrorHandling
 
         public bool IsBroken(TSubject subject)
         {
-            return !_rule(subject);
+            return !_predicate(subject);
         }
     }
 }

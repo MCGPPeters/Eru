@@ -28,7 +28,7 @@ namespace Eru.ErrorHandling
 
         public int GetHashCode(Failure<TCauseIdentifier> obj)
         {
-            return CauseIdentifiers != null ? CauseIdentifiers.GetHashCode() : 0;
+            return CauseIdentifiers?.GetHashCode() ?? 0;
         }
 
         public bool Equals(Failure<TCauseIdentifier> other)
