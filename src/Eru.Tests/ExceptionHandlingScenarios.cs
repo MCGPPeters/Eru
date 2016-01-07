@@ -94,6 +94,27 @@ namespace Eru.Tests
                 .VerboseCheckThrowOnFailure();
         }
 
+        //[Fact]
+        //public void Retry_policies_can_be_statefull_without_using_any_additional_variables_from_the_outer_scope()
+        //{
+        //    var arbitraryNumberOfRetries = Arb.From(Gen.Choose(1, 50));
+        //    var arbitraryDividend = Arb.From(Gen.Choose(1, 50));
+
+        //    Prop.ForAll(arbitraryNumberOfRetries, arbitraryDividend, (retry, dividend) =>
+        //    {
+        //        var retryCount = 0;
+        //        var expectedResult = new Either<Failure<Identifier>, int>(0);
+        //        if(retryCount != 0)
+        //            expectedResult = new Either<Failure<Identifier>, int>(dividend/retryCount);
+                
+        //        return dividend
+        //            .Retry(x => x / retryCount, exceptionIdentifier: Identifier.Exception)
+        //            .While(() => retry != retryCount++)
+        //            .Equals(expectedResult);
+        //    })
+        //        .VerboseCheckThrowOnFailure();
+        //}
+
         [Fact]
         public async Task Retry_can_run_asynchronously()
         {
@@ -126,7 +147,8 @@ namespace Eru.Tests
                 }, Identifier.Exception)
                 .WhileAsync(predicate);
 
-            actualResult.Should()
+            actualResult
+                .Should()
                 .Be(expectedResult, "Cannot open a connection without specifying a data source or server.");
         }
     }

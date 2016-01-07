@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Eru.Control
 {
-    public static class CSontrol
+    public static class Control
     {
         public static Either<TLeft, TRight> While<TLeft, TRight>(
             this Either<Func<Func<bool>, Either<TLeft, TRight>>, TRight> source,

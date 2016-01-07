@@ -30,7 +30,7 @@ namespace Eru.ErrorHandling
         public static Either<Failure<TCauseIdentifier>, TRight> Assert<TRight, TCauseIdentifier>(this TRight source,
             IEnumerable<Assertion<TCauseIdentifier, TRight>> rules)
         {
-            return Assert(source.AsEither<Failure<TCauseIdentifier>, TRight>(), rules);
+            return Assert(source.Return<Failure<TCauseIdentifier>, TRight>(), rules);
         }
     }
 }

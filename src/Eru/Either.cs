@@ -68,7 +68,7 @@ namespace Eru
 
     public static class Either
     {
-        public static Either<TLeft, TRight> AsEither<TLeft, TRight>(this TRight value)
+        public static Either<TLeft, TRight> Return<TLeft, TRight>(this TRight value)
         {
             return new Either<TLeft, TRight>(value);
         }

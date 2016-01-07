@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Eru.Tests</RootNamespace>
     <AssemblyName>Eru.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -84,6 +84,7 @@
     <Compile Include="Either.Monad.Laws.cs" />
     <Compile Include="ExceptionHandlingScenarios.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PureAndStatefullComputationScenarios.cs" />
     <Compile Include="ValidationScenarios.cs" />
   </ItemGroup>
   <ItemGroup>

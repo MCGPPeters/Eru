@@ -42,7 +42,7 @@ namespace Eru.ErrorHandling
                 Func<TSource, TResult> guarded, TExceptionIdentifier exceptionIdentifier)
         {
             return
-                Retry(source.AsEither<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TSource>(), guarded,
+                Retry(source.Return<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TSource>(), guarded,
                     exceptionIdentifier);
         }
 
