@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Eru.ErrorHandling;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace Eru.Tests
         }
 
         [Fact]
-        public void Simple_string_validation()
+        public void Predicate_based_validation_with_cause_expressed_as_a_string()
         {
             "".Assert("String must have a value",
                     x => !string.IsNullOrWhiteSpace(x),
@@ -66,6 +67,29 @@ namespace Eru.Tests
                             Fail();
                             return Unit.Instance;
                         });
+        }
+
+        [Fact]
+        public void Can_chain_predicate_based_validation()
+        {
+            var person = new Person { Age = -1, Name = "" };
+
+            person
+                .Assert("Has a valid age", p => p.Age >= 0)
+                .Assert("Has a valid name", p => string.IsNullOrWhiteSpace(p.Name))
+                .Match(
+                    failure =>
+                    {
+                        var expectedFailure =
+                            new Failure<string>("Has a valid age");
+                        Assert.Equal(expectedFailure, failure);
+                        return Unit.Instance;
+                    },
+                    _ =>
+                    {
+                        Fail();
+                        return Unit.Instance;
+                    }); ;
         }
 
         private static void Fail()

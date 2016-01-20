@@ -40,5 +40,12 @@ namespace Eru.ErrorHandling
         {
             return Assert(source.Return<Failure<string>, TRight>(), rules.Select(predicate => new Assertion<string, TRight>(cause, predicate)));
         }
+
+        public static Either<Failure<string>, TRight> Assert<TRight>(this Either<Failure<string>, TRight> source,
+           string cause,
+            params Predicate<TRight>[] rules)
+        {
+            return Assert(source, rules.Select(predicate => new Assertion<string, TRight>(cause, predicate)));
+        }
     }
 }
