@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Eru.ErrorHandling
@@ -31,6 +32,13 @@ namespace Eru.ErrorHandling
             IEnumerable<Assertion<TCauseIdentifier, TRight>> rules)
         {
             return Assert(source.Return<Failure<TCauseIdentifier>, TRight>(), rules);
+        }
+
+        public static Either<Failure<string>, TRight> Assert<TRight>(this TRight source,
+           string cause,
+            params Predicate<TRight>[] rules)
+        {
+            return Assert(source.Return<Failure<string>, TRight>(), rules.Select(predicate => new Assertion<string, TRight>(cause, predicate)));
         }
     }
 }
