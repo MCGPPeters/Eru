@@ -56,9 +56,9 @@ namespace Eru.Tests
         public void The_parser_that_always_fails_always_returns_an_empty_result(
             string input)
         {
-            var itemParser = Parser.Fail<char>();
+            var fail = Parser.Fail<char>();
 
-            var parsedString = itemParser.Parse(input);
+            var parsedString = fail.Parse(input);
 
             parsedString.Should().BeEmpty();
         }
@@ -67,9 +67,9 @@ namespace Eru.Tests
         public void The_parser_that_always_succeeds_always_returns_the_provided_value_and_the_unaltered_input(
             NonEmptyString value, NonEmptyString input)
         {
-            var itemParser = Parser.Return(value);
+            var succeed = Parser.Return(value);
             
-            var parsedString = itemParser.Parse(input.Get);
+            var parsedString = succeed.Parse(input.Get);
 
             parsedString.First().Item1.Should().Be(value);
         }

@@ -32,14 +32,14 @@ namespace Eru
                     ? Return(input.First())(input.Skip(1).ToArray()) 
                     : Fail<char>()(input);
 
-        private static Tuple<T, char[]>[] Parse<T>(this Parser<T> parser, char[] input) =>
+        public static Tuple<T, char[]>[] Parse<T>(this Parser<T> parser, char[] input) =>
             parser(input);
 
         public static Tuple<T, char[]>[] Parse<T>(this Parser<T> parser, string input)
         {
             return string.IsNullOrWhiteSpace(input) 
                 ? new Tuple<T, char[]>[0] 
-                : parser(input.ToCharArray());
+                : parser.Parse(input.ToCharArray());
         }
 
 
@@ -55,7 +55,9 @@ namespace Eru
             {
                 var parsedInput = parser(input);
 
-                return parsedInput.Any() ? parsedInput : nextParser(input);
+                return parsedInput.Any() 
+                    ? parsedInput 
+                    : nextParser(input);
             };
         }
 
@@ -75,7 +77,7 @@ namespace Eru
         /// yielding a list of (value, char[]) pairs / tuples. Now since func is a 
         /// function that takes a value and returns a parser, 
         /// it can be applied to each value (and unconsumed input char[]) in turn.
-        /// This results in a list of lists of (value, cahr[]) pairs,
+        /// This results in a list of lists of (value, char[]) pairs,
         /// that can then be flattened to a single list using concat
         ///</summary>
         /// <typeparam name="T"></typeparam>
@@ -87,8 +89,15 @@ namespace Eru
         {
             return input =>
             {
-                var parsed = parser.Parse(input);
-                return parsed.Select(tuple => func(tuple.Item1)).Concat()(input);
+                var parsedInput = parser(input);
+
+                return parsedInput.Any()
+                    ? parsedInput
+                        .Select(tuple => func(tuple.Item1))
+                        .Aggregate((parser1, parser2) => 
+                            toParse => 
+                                parser2(parser1(toParse).First().Item2))(input)
+                    : new Tuple<TU, char[]>[0];
             };
         }
 
@@ -112,17 +121,17 @@ namespace Eru
 
 
         public static Parser<char> Letter() =>
-            Lower().Bind(c => Upper());
+            Lower().Append(Upper());
 
         public static Parser<char> Alphanumeric() =>
-            Letter().Bind(c => Digit());
+            Letter().Append(Digit());
 
         public static Parser<char> Equals(char c) => 
             input => 
                 Where(c.Equals)(input);
 
         public static Parser<string> Word() =>
-            NonEmptyWord().Bind(s => Return(""));
+            NonEmptyWord().Append(Return(""));
 
         private static Parser<string> NonEmptyWord() =>
             Letter().Bind(c => Word().Bind(s => Return(c + s)));
