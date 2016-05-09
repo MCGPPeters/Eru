@@ -7,7 +7,7 @@ namespace Eru.Tests
 {
     public class ValidationScenarios
     {
-        public enum Constraint
+        private enum Constraint
         {
             AgeMustBePositive,
             NameIsRequired
@@ -22,7 +22,7 @@ namespace Eru.Tests
             };
         }
 
-        public Assertion<Constraint, Person>[] Assertions { get; private set; }
+        private Assertion<Constraint, Person>[] Assertions { get; }
 
         [Fact]
         public void Validating_a_subject_that_is_invalid_returns_the_broken_rules()
@@ -38,12 +38,6 @@ namespace Eru.Tests
                             new Failure<Constraint>(Assertions.Select(assertion => assertion.Identifier));
                         Assert.True(
                             failure.Equals(expectedFailure));
-                        return Unit.Instance;
-                    },
-                    _ =>
-                    {
-                        Fail();
-                        return Unit.Instance;
                     });
         }
 
@@ -51,22 +45,16 @@ namespace Eru.Tests
         public void Predicate_based_validation_with_cause_expressed_as_a_string()
         {
             "".Assert("String must have a value",
-                    x => !string.IsNullOrWhiteSpace(x),
-                    x => x.Equals("hasValue"))
-                    .Match(
-                        failure =>
-                        {
-                            var expectedFailure =
-                                new Failure<string>("String must have a value");
-                            Assert.True(
-                                failure.Equals(expectedFailure));
-                            return Unit.Instance;
-                        },
-                        _ =>
-                        {
-                            Fail();
-                            return Unit.Instance;
-                        });
+                x => !string.IsNullOrWhiteSpace(x),
+                x => x.Equals("hasValue"))
+                .Match(
+                    failure =>
+                    {
+                        var expectedFailure =
+                            new Failure<string>("String must have a value");
+                        Assert.True(
+                            failure.Equals(expectedFailure));
+                    });
         }
 
         [Fact]
@@ -76,25 +64,14 @@ namespace Eru.Tests
 
             person
                 .Assert("Has a valid age", p => p.Age >= 0)
-                .Assert("Has a valid name", p => string.IsNullOrWhiteSpace(p.Name))
+                .Assert("Has a valid name", p => !string.IsNullOrWhiteSpace(p.Name))
                 .Match(
                     failure =>
                     {
                         var expectedFailure =
                             new Failure<string>("Has a valid age");
                         Assert.Equal(expectedFailure, failure);
-                        return Unit.Instance;
-                    },
-                    _ =>
-                    {
-                        Fail();
-                        return Unit.Instance;
-                    }); ;
-        }
-
-        private static void Fail()
-        {
-            Assert.False(true);
+                    });
         }
     }
 

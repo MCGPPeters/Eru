@@ -73,30 +73,39 @@ namespace Eru
             return new Either<TLeft, TRight>(value);
         }
 
+        public static Either<TLeft, TRight> Fail<TLeft, TRight>(this TLeft value)
+        {
+            return new Either<TLeft, TRight>(value);
+        }
+
         public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
             Func<TRight, Either<TLeft, TResult>> function)
         {
-            return Match(either,
-                left => new Either<TLeft, TResult>(left),
-                function);
+            return Match(either, left => left.Fail<TLeft, TResult>(), function);
         }
 
         public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
             Func<TRight, TResult> function)
         {
             return Match(either,
-                left => new Either<TLeft, TResult>(left),
-                right => new Either<TLeft, TResult>(function(right)));
+                left => left.Fail<TLeft, TResult>(),
+                right => function(right).Return<TLeft, TResult>());
         }
 
         public static TResult Match<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> left,
             Func<TRight, TResult> right)
         {
-            if (right == null) throw new ArgumentNullException("right");
-            if (left == null) throw new ArgumentNullException("left");
+            if (right == null) throw new ArgumentNullException(nameof(right));
+            if (left == null) throw new ArgumentNullException(nameof(left));
             return either.LeftHasValue
                 ? left(either.Left)
                 : right(either.Right);
+        }
+
+        public static void Match<TLeft, TRight>(this Either<TLeft, TRight> either, Action<TLeft> left)
+        {
+            if (left == null) throw new ArgumentNullException(nameof(left));
+            left(either.Left);
         }
     }
 }
