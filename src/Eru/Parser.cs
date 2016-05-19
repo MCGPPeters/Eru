@@ -27,10 +27,9 @@ namespace Eru
                 new[] { new Tuple<TResult, char[]>(result, input) };
 
         public static Parser<char> Item() => 
-            input => 
-                input.Any() 
-                    ? Return(input.First())(input.Skip(1).ToArray()) 
-                    : Fail<char>()(input);
+            input => input.Any()
+                ? Return(input.First())(input.Skip(1).ToArray())
+                : Fail<char>()(input);
 
         public static Tuple<T, char[]>[] Parse<T>(this Parser<T> parser, char[] input) =>
             parser(input);
@@ -91,12 +90,11 @@ namespace Eru
             {
                 var parsedInput = parser(input);
 
-                return parsedInput.Any()
-                    ? parsedInput
-                        .Select(tuple => func(tuple.Item1))
-                        .Aggregate((parser1, parser2) => 
-                            toParse => 
-                                parser2(parser1(toParse).First().Item2))(input)
+                var parsers = parsedInput
+                    .Select(tuple => func(tuple.Item1)(tuple.Item2)).ToArray();
+
+                return parsers.Any()
+                    ? parsers.SelectMany(tuples => tuples).ToArray()
                     : new Tuple<TU, char[]>[0];
             };
         }
