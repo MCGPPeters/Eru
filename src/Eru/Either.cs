@@ -18,8 +18,8 @@ namespace Eru
             Left = left;
         }
 
-        public bool LeftHasValue { get; private set; }
-        public bool RightHasValue { get; private set; }
+        public bool LeftHasValue { get; set; }
+        public bool RightHasValue { get; set; }
 
         public TLeft Left
         {

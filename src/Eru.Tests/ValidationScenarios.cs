@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Eru.ErrorHandling;
 using Xunit;
 
@@ -7,12 +6,6 @@ namespace Eru.Tests
 {
     public class ValidationScenarios
     {
-        private enum Constraint
-        {
-            AgeMustBePositive,
-            NameIsRequired
-        }
-
         public ValidationScenarios()
         {
             Assertions = new[]
@@ -27,7 +20,7 @@ namespace Eru.Tests
         [Fact]
         public void Validating_a_subject_that_is_invalid_returns_the_broken_rules()
         {
-            var person = new Person { Age = -1, Name = "" };
+            var person = new Person {Age = -1, Name = ""};
 
             person
                 .Assert(Assertions)
@@ -60,7 +53,7 @@ namespace Eru.Tests
         [Fact]
         public void Can_chain_predicate_based_validation()
         {
-            var person = new Person { Age = -1, Name = "" };
+            var person = new Person {Age = -1, Name = ""};
 
             person
                 .Assert("Has a valid age", p => p.Age >= 0)
@@ -72,6 +65,12 @@ namespace Eru.Tests
                             new Failure<string>("Has a valid age");
                         Assert.Equal(expectedFailure, failure);
                     });
+        }
+
+        private enum Constraint
+        {
+            AgeMustBePositive,
+            NameIsRequired
         }
     }
 

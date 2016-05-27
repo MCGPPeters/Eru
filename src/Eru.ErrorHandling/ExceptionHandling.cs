@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Eru.ErrorHandling
 {
@@ -42,7 +40,8 @@ namespace Eru.ErrorHandling
                 Func<TSource, TResult> guarded, TExceptionIdentifier exceptionIdentifier)
         {
             return
-                Retry(source.Return<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TSource>(), guarded,
+                Retry(source.Return<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TSource>(),
+                    guarded,
                     exceptionIdentifier);
         }
 
@@ -60,20 +59,22 @@ namespace Eru.ErrorHandling
         {
             try
             {
-                return new Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult>(guarded(source));
+                return
+                    new Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult>(guarded(source));
             }
             catch (Exception)
             {
-                return new Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult>(predicate =>
-                {
-                    var result = default(Either<Failure<TExceptionIdentifier>, TResult>);
-                    while (predicate())
+                return
+                    new Either<Func<Func<bool>, Either<Failure<TExceptionIdentifier>, TResult>>, TResult>(predicate =>
                     {
-                        result = source.Try(guarded, exceptionIdentifier);
-                        if (result.RightHasValue) break;
-                    }
-                    return result;
-                });
+                        var result = default(Either<Failure<TExceptionIdentifier>, TResult>);
+                        while (predicate())
+                        {
+                            result = source.Try(guarded, exceptionIdentifier);
+                            if (result.RightHasValue) break;
+                        }
+                        return result;
+                    });
             }
         }
     }

@@ -24,33 +24,35 @@ namespace Eru.Tests
         [Fact]
         public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result()
         {
-            Prop.ForAll(Arb.From(Gen.Choose(1, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)), (dividend, divisor) => dividend
-                        .Try(x => x / divisor, Identifier.Exception)
-                        .Equals(new Either<Failure<Identifier>, int>(dividend / divisor)))
-                    .VerboseCheckThrowOnFailure();
+            Prop.ForAll(Arb.From(Gen.Choose(1, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)),
+                (dividend, divisor) => dividend
+                    .Try(x => x/divisor, Identifier.Exception)
+                    .Equals(new Either<Failure<Identifier>, int>(dividend/divisor)))
+                .VerboseCheckThrowOnFailure();
         }
 
         [Fact]
         public void Dividing_an_integer_by_zero_returns_an_exception()
         {
             Prop.ForAll(Arb.From(Gen.Choose(0, int.MaxValue)), dividend => dividend
-                .Try(x => x / 0, exceptionIdentifier: Identifier.Exception)
+                .Try(x => x/0, Identifier.Exception)
                 .Equals(new Either<Failure<Identifier>, int>(
                     new Exception<Identifier>(Identifier.Exception, new DivideByZeroException()))))
-                    .VerboseCheckThrowOnFailure();
+                .VerboseCheckThrowOnFailure();
         }
 
         [Fact]
         public void Chaining_of_try_blocks_is_possible_for_disparately_typed_return_values()
         {
-            Prop.ForAll(Arb.From(Gen.Choose(0, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)), (dividend, divisor, secondDivisor) =>
-            {
-                var expectedResult = new Either<Failure<Identifier>, int>(dividend / divisor / secondDivisor);
-                return dividend
-                    .Try(x => x/divisor, exceptionIdentifier: Identifier.Exception)
-                    .Try(x => x/secondDivisor, exceptionIdentifier: Identifier.Exception)
-                    .Equals(expectedResult);
-            })
+            Prop.ForAll(Arb.From(Gen.Choose(0, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)),
+                Arb.From(Gen.Choose(1, int.MaxValue)), (dividend, divisor, secondDivisor) =>
+                {
+                    var expectedResult = new Either<Failure<Identifier>, int>(dividend/divisor/secondDivisor);
+                    return dividend
+                        .Try(x => x/divisor, Identifier.Exception)
+                        .Try(x => x/secondDivisor, Identifier.Exception)
+                        .Equals(expectedResult);
+                })
                 .VerboseCheckThrowOnFailure();
         }
 
@@ -83,11 +85,11 @@ namespace Eru.Tests
             {
                 var retryCount = 0;
                 var expectedResult = new Either<Failure<Identifier>, int>(0);
-                if(retryCount != 0)
+                if (retryCount != 0)
                     expectedResult = new Either<Failure<Identifier>, int>(dividend/retryCount);
-                
+
                 return dividend
-                    .Retry(x => x / retryCount, Identifier.Exception)
+                    .Retry(x => x/retryCount, Identifier.Exception)
                     .While(() => retry != retryCount++)
                     .Equals(expectedResult);
             })
@@ -106,7 +108,7 @@ namespace Eru.Tests
         //        var expectedResult = new Either<Failure<Identifier>, int>(0);
         //        if(retryCount != 0)
         //            expectedResult = new Either<Failure<Identifier>, int>(dividend/retryCount);
-                
+
         //        return dividend
         //            .Retry(x => x / retryCount, exceptionIdentifier: Identifier.Exception)
         //            .While(() => retry != retryCount++)
@@ -123,7 +125,7 @@ namespace Eru.Tests
             Func<bool> predicate = () => 3 != i++;
 
             var actualResult = await 6
-                .Retry(x => x / i, Identifier.Exception)
+                .Retry(x => x/i, Identifier.Exception)
                 .WhileAsync(predicate);
 
             actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");

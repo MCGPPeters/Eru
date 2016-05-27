@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CSharp.RuntimeBinder;
 
 namespace Eru
 {
@@ -17,14 +16,16 @@ namespace Eru
         }
 
         public T Identity { get; }
-
         public T Append(T second) => _binaryOperator(Identity, second);
+
+        public T Concat(IEnumerable<T> ts)
+        {
+            return ts.Aggregate(Identity, _binaryOperator.Invoke);
+        }
 
         public static T operator +(Monoid<T> first, Monoid<T> second)
         {
             return first.Append(second.Identity);
         }
-
-        public T Concat(IEnumerable<T> ts) { return ts.Aggregate(Identity, _binaryOperator.Invoke); }
     }
 }
