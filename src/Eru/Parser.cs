@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Eru
@@ -48,7 +47,7 @@ namespace Eru
         /// <param name="parser"></param>
         /// <param name="nextParser">The next parser.</param>
         /// <returns></returns>
-        public static Parser<T> Append<T>(this Parser<T> parser, Parser<T> nextParser)
+        public static Parser<T> Otherwise<T>(this Parser<T> parser, Parser<T> nextParser)
         {
             return input =>
             {
@@ -58,17 +57,6 @@ namespace Eru
                     ? parsedInput 
                     : nextParser(input);
             };
-        }
-
-        /// <summary>
-        /// Combines / flattens a list of parsers into one parser by appending each parser to the next in the sequence
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="parsers"></param>
-        /// <returns></returns>
-        public static Parser<T> Concat<T>(this IEnumerable<Parser<T>> parsers)
-        {
-            return parsers.Aggregate((parser, nextParser) => parser.Append(nextParser));
         }
 
         /// <summary>
@@ -119,17 +107,17 @@ namespace Eru
 
 
         public static Parser<char> Letter() =>
-            Lower().Append(Upper());
+            Lower().Otherwise(Upper());
 
         public static Parser<char> Alphanumeric() =>
-            Letter().Append(Digit());
+            Letter().Otherwise(Digit());
 
         public static Parser<char> Equals(char c) => 
             input => 
                 Where(c.Equals)(input);
 
         public static Parser<string> Word() =>
-            NonEmptyWord().Append(Return(""));
+            NonEmptyWord().Otherwise(Return(""));
 
         private static Parser<string> NonEmptyWord() =>
             Letter().Bind(c => Word().Bind(s => Return(c + s)));
