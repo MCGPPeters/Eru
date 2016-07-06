@@ -25,7 +25,7 @@ namespace Eru.Tests
                 var left = 1.Return<Exception, int>().Map(AddOne);
                 var right = AddOne(1).Return<Exception, int>();
 
-                left.Should().Be(right);
+                left.ShouldBeEquivalentTo(right);
             }
 
             [Fact]
@@ -34,7 +34,7 @@ namespace Eru.Tests
                 var left = F.Map(m => m);
                 var right = F;
 
-                left.Should().Be(right);
+                left.ShouldBeEquivalentTo(right);
             }
 
             [Fact]
@@ -43,7 +43,7 @@ namespace Eru.Tests
                 var resultFromChaining = F.Map(AddOne).Map(AddTwo);
                 var resultFromComposing = F.Map(Compose(AddOne, AddTwo));
 
-                resultFromChaining.Should().Be(resultFromComposing);
+                resultFromChaining.ShouldBeEquivalentTo(resultFromComposing);
             }
         }
     }

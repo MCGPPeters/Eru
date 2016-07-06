@@ -21,7 +21,7 @@ namespace Eru.Tests
                 var left = 1.Return<Exception, int>().Bind(AddOne);
                 var right = AddOne(1);
 
-                left.Should().Be(right);
+                left.ShouldBeEquivalentTo(right);
             }
 
             [Fact]
@@ -30,7 +30,7 @@ namespace Eru.Tests
                 var left = M.Bind(m => m.Return<Exception, int>());
                 var right = M;
 
-                left.Should().Be(right);
+                left.ShouldBeEquivalentTo(right);
             }
 
             [Fact]
@@ -39,7 +39,7 @@ namespace Eru.Tests
                 var left = M.Bind(AddOne).Bind(AddTwo);
                 var right = M.Bind(x => AddOne(x).Bind(AddTwo));
 
-                left.Should().Be(right);
+                left.ShouldBeEquivalentTo(right);
             }
         }
     }

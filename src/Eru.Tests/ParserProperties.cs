@@ -79,7 +79,7 @@ namespace Eru.Tests
         }
 
         [Fact]
-        public void Upper()
+        public void Parsing_a_string_where_the_next_character_is_an_uppercase_letter_parses_that_character()
         {
             var upper = Parser.Upper();
 
@@ -87,16 +87,6 @@ namespace Eru.Tests
 
             parsedCharacter.First().Item1.Should().Be('H');
             new string(parsedCharacter[0].Item2).Should().Be("ello");
-        }
-
-        [Fact]
-        public void Word()
-        {
-            var upper = Parser.Word();
-
-            var parsedString = upper.Parse("Hello");
-
-            parsedString.First().Item1.Should().Be("Hello");
         }
 
         [Property(Verbose = true)]
@@ -112,5 +102,6 @@ namespace Eru.Tests
             //assert
             parsedWord.First().Item1.Should().Be(input.Get);
         }
+
     }
 }

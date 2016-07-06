@@ -27,7 +27,7 @@ namespace Eru.Tests
             Prop.ForAll(Arb.From(Gen.Choose(1, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)),
                 (dividend, divisor) => dividend
                     .Try(x => x/divisor, Identifier.Exception)
-                    .Equals(new Either<Failure<Identifier>, int>(dividend/divisor)))
+                    .ShouldBeEquivalentTo(new Either<Failure<Identifier>, int>(dividend/divisor)))
                 .VerboseCheckThrowOnFailure();
         }
 
@@ -36,7 +36,7 @@ namespace Eru.Tests
         {
             Prop.ForAll(Arb.From(Gen.Choose(0, int.MaxValue)), dividend => dividend
                 .Try(x => x/0, Identifier.Exception)
-                .Equals(new Either<Failure<Identifier>, int>(
+                .ShouldBeEquivalentTo(new Either<Failure<Identifier>, int>(
                     new Exception<Identifier>(Identifier.Exception, new DivideByZeroException()))))
                 .VerboseCheckThrowOnFailure();
         }
@@ -96,27 +96,6 @@ namespace Eru.Tests
                 .VerboseCheckThrowOnFailure();
         }
 
-        //[Fact]
-        //public void Retry_policies_can_be_statefull_without_using_any_additional_variables_from_the_outer_scope()
-        //{
-        //    var arbitraryNumberOfRetries = Arb.From(Gen.Choose(1, 50));
-        //    var arbitraryDividend = Arb.From(Gen.Choose(1, 50));
-
-        //    Prop.ForAll(arbitraryNumberOfRetries, arbitraryDividend, (retry, dividend) =>
-        //    {
-        //        var retryCount = 0;
-        //        var expectedResult = new Either<Failure<Identifier>, int>(0);
-        //        if(retryCount != 0)
-        //            expectedResult = new Either<Failure<Identifier>, int>(dividend/retryCount);
-
-        //        return dividend
-        //            .Retry(x => x / retryCount, exceptionIdentifier: Identifier.Exception)
-        //            .While(() => retry != retryCount++)
-        //            .Equals(expectedResult);
-        //    })
-        //        .VerboseCheckThrowOnFailure();
-        //}
-
         [Fact]
         public async Task Retry_can_run_asynchronously()
         {
@@ -128,8 +107,8 @@ namespace Eru.Tests
                 .Retry(x => x/i, Identifier.Exception)
                 .WhileAsync(predicate);
 
-            actualResult.Should().Be(expectedResult, "6 / 1 = 1 which is called at the second iteration");
-            i.Should().Be(1, "The function call has to be retried 1 time before it doesn't throw any More");
+            actualResult.ShouldBeEquivalentTo(expectedResult, "6 / 1 = 1 which is called at the second iteration");
+            i.ShouldBeEquivalentTo(1, "The function call has to be retried 1 time before it doesn't throw any More");
         }
 
         [Fact]
@@ -150,8 +129,7 @@ namespace Eru.Tests
                 .WhileAsync(predicate);
 
             actualResult
-                .Should()
-                .Be(expectedResult, "Cannot open a connection without specifying a data source or server.");
+                .ShouldBeEquivalentTo(expectedResult, "Cannot open a connection without specifying a data source or server.");
         }
     }
 }

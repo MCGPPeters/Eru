@@ -41,28 +41,11 @@ namespace Eru
             }
         }
 
-        private bool Equals(Either<TLeft, TRight> other)
+        public bool Equals(Either<TLeft, TRight> other)
         {
             return EqualityComparer<TLeft>.Default.Equals(_left, other._left) ||
                    EqualityComparer<TRight>.Default.Equals(_right, other._right) && LeftHasValue == other.LeftHasValue ||
                    RightHasValue == other.RightHasValue;
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = EqualityComparer<TLeft>.Default.GetHashCode(_left);
-                hashCode = (hashCode*397) ^ EqualityComparer<TRight>.Default.GetHashCode(_right);
-                hashCode = (hashCode*397) ^ LeftHasValue.GetHashCode();
-                hashCode = (hashCode*397) ^ RightHasValue.GetHashCode();
-                return hashCode;
-            }
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals((Either<TLeft, TRight>) obj);
         }
     }
 
