@@ -6,7 +6,7 @@ namespace Eru.Tests
 {
     namespace Either.Functor
     {
-        public class Laws
+        public class Properties
         {
             private static readonly Func<int, int, int> Add = (x, y) => x + y;
             private static readonly Func<int, int> AddOne = x => Add(x, 1);

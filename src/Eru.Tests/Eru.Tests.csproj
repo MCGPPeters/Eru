@@ -81,7 +81,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Either.Monad.Laws.cs" />
+    <Compile Include="Continuation.Monad.Properties.cs" />
+    <Compile Include="Either.Monad.Properties.cs" />
     <Compile Include="ExceptionHandlingScenarios.cs" />
     <Compile Include="ParserProperties.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -89,7 +90,7 @@
     <Compile Include="ValidationScenarios.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Either.Functor.Laws.cs" />
+    <Compile Include="Either.Functor.Properties.cs" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

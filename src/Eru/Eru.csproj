@@ -43,6 +43,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
+    <Compile Include="Continuation.cs" />
     <Compile Include="Either.cs" />
     <Compile Include="IMonoid.cs" />
     <Compile Include="Monoid.cs" />

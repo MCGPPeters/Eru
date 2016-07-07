@@ -6,7 +6,7 @@ namespace Eru.Tests
 {
     namespace Either.Monad
     {
-        public class Laws
+        public class Properties
         {
             private static readonly Func<int, int, Either<Exception, int>> Add =
                 (x, y) => (x + y).Return<Exception, int>();
