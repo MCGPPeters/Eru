@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using FsCheck.Xunit;
 using Xunit;
 
@@ -41,7 +42,7 @@ namespace Eru.Tests
 
                 var expected = continuation.Bind(x => x.AsContinuation<int, int>()).Bind(y => y.AsContinuation<int, int>())(_addOne);
                 var actual = continuation.Bind(x => x.AsContinuation<int, int>().Bind(y => y.AsContinuation<int, int>()))(_addOne);
-                
+
                 Assert.Equal(expected, actual);
             }
         }

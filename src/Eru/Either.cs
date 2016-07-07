@@ -56,6 +56,11 @@ namespace Eru
             return new Either<TLeft, TRight>(value);
         }
 
+        public static Either<TLeft, TRight> AsEither<TLeft, TRight>(this TRight value)
+        {
+            return Return<TLeft, TRight>(value);
+        }
+
         public static Either<TLeft, TRight> Fail<TLeft, TRight>(this TLeft value)
         {
             return new Either<TLeft, TRight>(value);
@@ -73,6 +78,12 @@ namespace Eru
             return Match(either,
                 left => left.Fail<TLeft, TResult>(),
                 right => function(right).Return<TLeft, TResult>());
+        }
+
+        public static Either<TLeft, TResult> Select<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
+            Func<TRight, TResult> function)
+        {
+            return Map(either, function);
         }
 
         public static TResult Match<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> left,

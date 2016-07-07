@@ -84,6 +84,7 @@
     <Compile Include="Continuation.Monad.Properties.cs" />
     <Compile Include="Either.Monad.Properties.cs" />
     <Compile Include="ExceptionHandlingScenarios.cs" />
+    <Compile Include="Lambda\BooleanProperties.cs" />
     <Compile Include="ParserProperties.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PureAndStatefullComputationScenarios.cs" />

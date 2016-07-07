@@ -46,6 +46,7 @@
     <Compile Include="Continuation.cs" />
     <Compile Include="Either.cs" />
     <Compile Include="IMonoid.cs" />
+    <Compile Include="Lambda\Boolean.cs" />
     <Compile Include="Monoid.cs" />
     <Compile Include="MonoidExtensions.cs" />
     <Compile Include="Parser.cs" />

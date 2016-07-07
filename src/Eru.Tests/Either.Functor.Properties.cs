@@ -1,5 +1,6 @@
 ﻿using System;
 using FluentAssertions;
+using FsCheck.Xunit;
 using Xunit;
 
 namespace Eru.Tests
@@ -19,30 +20,30 @@ namespace Eru.Tests
                 return source => func2(func1(source));
             }
 
-            [Fact]
-            public void Left_identity()
+            [Property(Verbose = true)]
+            public void Left_identity(int arg)
             {
-                var left = 1.Return<Exception, int>().Map(AddOne);
-                var right = AddOne(1).Return<Exception, int>();
+                var left = arg.Return<Exception, int>().Map(AddOne);
+                var right = AddOne(arg).Return<Exception, int>();
 
                 left.ShouldBeEquivalentTo(right);
             }
 
-            [Fact]
-            public void Right_identity()
+            [Property(Verbose = true)]
+            public void Right_identity(int arg)
             {
-                var left = F.Map(m => m);
-                var right = F;
+                var left = arg.Return<Exception, int>().Map(m => m);
+                var right = arg.Return<Exception, int>();
 
                 left.ShouldBeEquivalentTo(right);
             }
 
-            [Fact]
-            public void Composable()
+            [Property(Verbose = true)]
+            public void Composable(int arg)
             {
-                var resultFromChaining = F.Map(AddOne).Map(AddTwo);
-                var resultFromComposing = F.Map(Compose(AddOne, AddTwo));
-
+                var resultFromChaining = arg.Return<Exception, int>().Map(AddOne).Map(AddTwo);
+                var resultFromComposing = arg.Return<Exception, int>().Map(Compose(AddOne, AddTwo));
+                
                 resultFromChaining.ShouldBeEquivalentTo(resultFromComposing);
             }
         }
