@@ -10,15 +10,11 @@ namespace Eru
 
     public static class Continuation
     {
-        private static Continuation<T, TAnswer> Return<T, TAnswer>(this T value)
-        {
-            return next => next(value);
-        }
+        private static Continuation<T, TAnswer> Return<T, TAnswer>(this T value) =>
+            next => next(value);
 
-        public static Continuation<T, TAnswer> AsContinuation<T, TAnswer>(this T value)
-        {
-            return Return<T, TAnswer>(value);
-        }
+        public static Continuation<T, TAnswer> AsContinuation<T, TAnswer>(this T value) => 
+            Return<T, TAnswer>(value);
 
         public static Continuation<TU, TAnswer> SelectMany<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation, Func<T, Continuation<TU, TAnswer>> function)
         {
@@ -54,5 +50,16 @@ namespace Eru
         {
             return SelectMany(continuation, function);
         }
+
+        public delegate Task AppFunc(IDictionary<string, object> environment);
+
+
+        //public static Continuation<T, T> If<T>(this Continuation<T, T> continuation,
+        //        Predicate<T> predicate) =>
+        //    next => Bind(continuation, arg =>
+        //    {
+        //        if (predicate(arg)) return (func => func(arg)) ;
+        //        return (func => continuation(func)) ;
+        //    });
     }
 }
