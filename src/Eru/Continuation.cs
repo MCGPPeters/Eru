@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Eru
 {
@@ -13,10 +14,11 @@ namespace Eru
         private static Continuation<T, TAnswer> Return<T, TAnswer>(this T value) =>
             next => next(value);
 
-        public static Continuation<T, TAnswer> AsContinuation<T, TAnswer>(this T value) => 
+        public static Continuation<T, TAnswer> AsContinuation<T, TAnswer>(this T value) =>
             Return<T, TAnswer>(value);
 
-        public static Continuation<TU, TAnswer> SelectMany<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation, Func<T, Continuation<TU, TAnswer>> function)
+        public static Continuation<TU, TAnswer> SelectMany<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation,
+            Func<T, Continuation<TU, TAnswer>> function)
         {
             return next =>
             {
@@ -24,7 +26,8 @@ namespace Eru
             };
         }
 
-        public static Continuation<TV, TAnswer> SelectMany<T, TU, TV, TAnswer>(this Continuation<T, TAnswer> continuation, Func<T, Continuation<TU, TAnswer>> function, Func<T, TU, TV> map)
+        public static Continuation<TV, TAnswer> SelectMany<T, TU, TV, TAnswer>(
+            this Continuation<T, TAnswer> continuation, Func<T, Continuation<TU, TAnswer>> function, Func<T, TU, TV> map)
         {
             return next =>
             {
@@ -32,12 +35,14 @@ namespace Eru
             };
         }
 
-        public static Continuation<TU, TAnswer> Select<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation, Func<T, TU> map)
+        public static Continuation<TU, TAnswer> Select<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation,
+            Func<T, TU> map)
         {
             return Map(continuation, map);
         }
 
-        private static Continuation<TU, TAnswer> Map<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation, Func<T, TU> map)
+        private static Continuation<TU, TAnswer> Map<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation,
+            Func<T, TU> map)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
             return next =>
@@ -46,7 +51,8 @@ namespace Eru
             };
         }
 
-        public static Continuation<TU, TAnswer> Bind<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation, Func<T, Continuation<TU, TAnswer>> function)
+        public static Continuation<TU, TAnswer> Bind<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation,
+            Func<T, Continuation<TU, TAnswer>> function)
         {
             return SelectMany(continuation, function);
         }
@@ -54,12 +60,12 @@ namespace Eru
         public delegate Task AppFunc(IDictionary<string, object> environment);
 
 
-        //public static Continuation<T, T> If<T>(this Continuation<T, T> continuation,
-        //        Predicate<T> predicate) =>
-        //    next => Bind(continuation, arg =>
-        //    {
-        //        if (predicate(arg)) return (func => func(arg)) ;
-        //        return (func => continuation(func)) ;
-        //    });
+        public static Continuation<T, TAnswer> If<T, TAnswer>(this Continuation<T, TAnswer> continuation,
+                Predicate<T> predicate) where T : TAnswer => 
+                    continuation.Bind(arg => 
+                        predicate(arg) 
+                            ? Return<T, TAnswer>(arg) 
+                            : func => arg);
+
     }
 }
