@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using FsCheck;
 
 namespace Eru.Tests
 {
@@ -54,11 +56,11 @@ namespace Eru.Tests
             [Property(Verbose = true)]
             public void Continuation_does_not_execute_if_predicate_does_not_hold(int value)
             {
-                Func<bool> predicate = () => false;
+                Predicate<int> predicate = _ => false;
                 var continuation = value.AsContinuation<int, int>();
-                var expected = ++value;
+                var expected = value;
 
-                var actual = continuation.Iff(predicate)(_addOne);
+                var actual = continuation.If(predicate)(_addOne);
 
                 Assert.NotEqual(expected, actual);
             }
@@ -68,24 +70,11 @@ namespace Eru.Tests
             {
                 Predicate<int> predicate = _ => true;
                 var continuation = value.AsContinuation<int, int>();
-                var expected = ++value;
+                var expected = value + 1;
 
                 var actual = continuation.If(predicate)(_addOne);
 
                 Assert.Equal(expected, actual);
-            }
-
-            [Property(Verbose = true)]
-            public void OWIN(IDictionary<string, object> environment)
-            {
-                Predicate<IDictionary<string, object>> isAuthorized = _ => true;
-                Predicate<IDictionary<string, object>> isValid = _ => false;
-                var appFunc = environment.AsContinuation<IDictionary<string, object>, Task<int>>();
-                Func<IDictionary<string, object>, Task<int>> appFunc2 = objects => Task.FromResult(2);
-
-                var application = appFunc.If(isAuthorized).If(isValid)(appFunc2);
-
-                Assert.Equal(2, application.Result);
             }
         }
     }

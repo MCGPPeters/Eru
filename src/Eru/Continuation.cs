@@ -57,15 +57,19 @@ namespace Eru
             return SelectMany(continuation, function);
         }
 
-        public delegate Task AppFunc(IDictionary<string, object> environment);
-
 
         public static Continuation<T, TAnswer> If<T, TAnswer>(this Continuation<T, TAnswer> continuation,
-                Predicate<T> predicate) where T : TAnswer => 
-                    continuation.Bind(arg => 
-                        predicate(arg) 
-                            ? Return<T, TAnswer>(arg) 
-                            : func => arg);
+            Func<bool> predicate) => 
+                predicate()
+                    ? continuation
+                    : Bind(continuation, Return<T, TAnswer>);
 
+        public static Continuation<T, TAnswer> If<T, TAnswer>(this Continuation<T, TAnswer> continuation,
+                Predicate<T> predicate) => 
+                    Bind(continuation, arg => 
+                        predicate(arg) 
+                            ? continuation 
+                            : Return<T, TAnswer>(arg));
+            
     }
 }
