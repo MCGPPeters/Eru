@@ -48,7 +48,9 @@ namespace Eru.Tests
                     continuation.Bind(x => x.AsContinuation<int, int>())
                         .Bind(y => y.AsContinuation<int, int>())(_addOne);
                 var actual =
-                    continuation.Bind(x => x.AsContinuation<int, int>().Bind(y => y.AsContinuation<int, int>()))(_addOne);
+                    continuation
+                        .Bind(x => x.AsContinuation<int, int>()
+                        .Bind(y => y.AsContinuation<int, int>()))(_addOne);
 
                 Assert.Equal(expected, actual);
             }
@@ -75,6 +77,38 @@ namespace Eru.Tests
                 var actual = continuation.If(predicate)(_addOne);
 
                 Assert.Equal(expected, actual);
+            }
+
+            [Property(Verbose = true)]
+            public void Continuation_executes_when_no_exception_occurs(int value)
+            {
+                var continuation = value.AsContinuation<int, Either<Exception,int>>();
+                var expected = value + 1;
+
+                var actual = continuation.Try(_addOne)(i => i.AsEither<Exception, int>());
+
+                actual.Match(exception => false, i => (i == expected));
+            }
+
+            [Property(Verbose = true)]
+            public void Continuation_does_not_execute_when_an_exception_occurs(int value)
+            {
+                var continuation = value.AsContinuation<int, Either<Exception,int>>();
+                var expected = new DivideByZeroException();
+
+                var actual = continuation.Try(i => i / 0 )(i => i.AsEither<Exception, int>());
+
+                Assert.Equal(expected.Message, actual.Left.Message);
+            }
+
+            [Property(Verbose = true)]
+            public void A_continuation_does_not_execute_when_an_exception_occurs(int value)
+            {
+                var expected = new DivideByZeroException();
+
+                var actual = value.Try(i => i / 0 )(i => i.AsEither<Exception, int>());
+
+                Assert.Equal(expected.Message, actual.Left.Message);
             }
         }
     }

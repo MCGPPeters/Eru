@@ -81,32 +81,5 @@ namespace Eru.Control
 
             return loop(initialState);
         }
-
-        //public static Tuple<TResult, TState> ForLinq<TSource, TState, TResult>(this TSource source, TState initialState,
-        //    Func<TState, bool> continueWhile, Func<TState, TState> updateState, Func<TSource, TResult> function)
-        //{
-        //    var stateFunc = source.Return<TSource, TState>();
-
-        //    StateFunc<TResult, TState> loop = null;
-
-        //    loop = state =>
-        //    {
-        //        var m = 
-        //            from x in stateFunc
-        //            from y in Get<TState>(x)
-        //            from z in Set(updateState(y))
-        //            select function(source);
-
-        //        if (continueWhile(state))
-        //        {
-        //            return m.Bind(result => loop)(state);
-        //        }
-        //        ;
-
-        //        return m(state);
-        //    };
-
-        //    return loop(initialState);
-        //}
     }
 }

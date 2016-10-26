@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Eru
 {
@@ -51,6 +46,7 @@ namespace Eru
             };
         }
 
+        //Func<TRight, Either<TLeft, TResult>> function
         public static Continuation<TU, TAnswer> Bind<T, TU, TAnswer>(this Continuation<T, TAnswer> continuation,
             Func<T, Continuation<TU, TAnswer>> function)
         {
@@ -59,17 +55,40 @@ namespace Eru
 
 
         public static Continuation<T, TAnswer> If<T, TAnswer>(this Continuation<T, TAnswer> continuation,
-            Func<bool> predicate) => 
-                predicate()
-                    ? continuation
-                    : Bind(continuation, Return<T, TAnswer>);
+                Func<bool> predicate) =>
+            predicate()
+                ? continuation
+                : Bind(continuation, Return<T, TAnswer>);
 
         public static Continuation<T, TAnswer> If<T, TAnswer>(this Continuation<T, TAnswer> continuation,
-                Predicate<T> predicate) => 
-                    Bind(continuation, arg => 
-                        predicate(arg) 
-                            ? continuation 
-                            : Return<T, TAnswer>(arg));
-            
+                Predicate<T> predicate) =>
+            Bind(continuation, arg =>
+                predicate(arg)
+                    ? continuation
+                    : Return<T, TAnswer>(arg));
+
+        public static Continuation<T, Either<Exception, TAnswer>> Try<T, TAnswer>(
+            this Continuation<T, Either<Exception, TAnswer>> continuation,
+            Func<T, TAnswer> @try)
+        {
+            return continuation.Bind(arg =>
+            {
+                try
+                {
+                    @try(arg);
+                    return continuation;
+                }
+                catch (Exception ex)
+                {
+                    return c => new Either<Exception, TAnswer>(ex);
+                }
+            });
+        }
+
+        public static Continuation<T, Either<Exception, TAnswer>> Try<T, TAnswer>(this T value, Func<T, TAnswer> @try)
+        {
+            var continuation = value.AsContinuation<T, Either<Exception, TAnswer>>();
+            return Try(continuation, @try);
+        }
     }
 }
