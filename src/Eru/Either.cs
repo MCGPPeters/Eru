@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Eru
 {
@@ -40,51 +39,32 @@ namespace Eru
                 RightHasValue = true;
             }
         }
-
-        public bool Equals(Either<TLeft, TRight> other)
-        {
-            return EqualityComparer<TLeft>.Default.Equals(_left, other._left) ||
-                   EqualityComparer<TRight>.Default.Equals(_right, other._right) && LeftHasValue == other.LeftHasValue ||
-                   RightHasValue == other.RightHasValue;
-        }
     }
 
     public static class Either
     {
         public static Either<TLeft, TRight> Return<TLeft, TRight>(this TRight value)
-        {
-            return new Either<TLeft, TRight>(value);
-        }
+            => new Either<TLeft, TRight>(value);
 
         public static Either<TLeft, TRight> AsEither<TLeft, TRight>(this TRight value)
-        {
-            return Return<TLeft, TRight>(value);
-        }
+            => Return<TLeft, TRight>(value);
 
         public static Either<TLeft, TRight> Fail<TLeft, TRight>(this TLeft value)
-        {
-            return new Either<TLeft, TRight>(value);
-        }
+            => new Either<TLeft, TRight>(value);
 
         public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
             Func<TRight, Either<TLeft, TResult>> function)
-        {
-            return Match(either, left => left.Fail<TLeft, TResult>(), function);
-        }
+            => Match(either, left => left.Fail<TLeft, TResult>(), function);
 
         public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
             Func<TRight, TResult> function)
-        {
-            return Match(either,
+            => Match(either,
                 left => left.Fail<TLeft, TResult>(),
                 right => function(right).Return<TLeft, TResult>());
-        }
 
         public static Either<TLeft, TResult> Select<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
             Func<TRight, TResult> function)
-        {
-            return Map(either, function);
-        }
+            => Map(either, function);
 
         public static TResult Match<TLeft, TRight, TResult>(this Either<TLeft, TRight> either, Func<TLeft, TResult> left,
             Func<TRight, TResult> right)

@@ -1,7 +1,6 @@
 ﻿using System;
 using FluentAssertions;
 using FsCheck.Xunit;
-using Xunit;
 
 namespace Eru.Tests
 {
@@ -43,7 +42,7 @@ namespace Eru.Tests
             {
                 var resultFromChaining = arg.Return<Exception, int>().Map(AddOne).Map(AddTwo);
                 var resultFromComposing = arg.Return<Exception, int>().Map(Compose(AddOne, AddTwo));
-                
+
                 resultFromChaining.ShouldBeEquivalentTo(resultFromComposing);
             }
         }

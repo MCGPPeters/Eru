@@ -3,6 +3,7 @@
 namespace Eru.Lambda
 {
     public delegate Func<object, object> Boolean(object @true);
+
     public delegate Func<TTrue, TFalse> Boolean<in TTrue, out TFalse>(TTrue @true);
 
     public static class Bool
@@ -12,8 +13,9 @@ namespace Eru.Lambda
 
         public static bool ToBool(this Boolean @bool)
         {
-            return (bool)@bool(true)(false);
+            return (bool) @bool(true)(false);
         }
+
         //  User-defined conversion from a boolean value to a Boolean lambda
         public static Boolean ToBoolean(this bool @bool)
         {

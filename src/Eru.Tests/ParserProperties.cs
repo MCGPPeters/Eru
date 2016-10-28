@@ -10,18 +10,17 @@ namespace Eru.Tests
     public class Generators
 #pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
-        private static readonly Gen<NonEmptyString> WordGenerator = 
-                Arb.Default.NonEmptyString().Generator
-                    .Where(s =>
-                        !s.Get.Contains("\r") &&
-                        !s.Get.Contains("\n") &&
-                        !s.Get.Contains("\t"))
-                    .Where(s =>
-                    {
-                        var regEx = new Regex(@"^[A-Za-z]*$");
-                        return regEx.Match(s.Get).Success;
-                    });
-        
+        private static readonly Gen<NonEmptyString> WordGenerator =
+            Arb.Default.NonEmptyString().Generator
+                .Where(s =>
+                    !s.Get.Contains("\r") &&
+                    !s.Get.Contains("\n") &&
+                    !s.Get.Contains("\t"))
+                .Where(s =>
+                {
+                    var regEx = new Regex(@"^[A-Za-z]*$");
+                    return regEx.Match(s.Get).Success;
+                });
 
         public static Arbitrary<NonEmptyString> ArbitraryWord => Arb.From(WordGenerator);
     }
@@ -32,7 +31,7 @@ namespace Eru.Tests
         {
             Arb.Register<Generators>();
         }
-        
+
         [Fact]
         public void Parsing_the_empty_string_return_an_empty_result()
         {
@@ -102,6 +101,5 @@ namespace Eru.Tests
             //assert
             parsedWord.First().Item1.Should().Be(input.Get);
         }
-
     }
 }

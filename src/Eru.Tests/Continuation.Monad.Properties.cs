@@ -1,16 +1,11 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using FsCheck;
+﻿using System;
+using FsCheck.Xunit;
+using Xunit;
 
 namespace Eru.Tests
 {
     namespace Continuation.Monad
     {
-        using System;
-        using FsCheck.Xunit;
-        using Xunit;
-
         public class Properties
         {
             private readonly Func<int, int> _addOne = i => i + 1;
@@ -50,65 +45,31 @@ namespace Eru.Tests
                 var actual =
                     continuation
                         .Bind(x => x.AsContinuation<int, int>()
-                        .Bind(y => y.AsContinuation<int, int>()))(_addOne);
+                            .Bind(y => y.AsContinuation<int, int>()))(_addOne);
 
                 Assert.Equal(expected, actual);
             }
 
             [Property(Verbose = true)]
-            public void Continuation_does_not_execute_if_predicate_does_not_hold(int value)
+            public void Continuation_returns_input_if_predicate_does_not_hold(int value)
             {
                 Predicate<int> predicate = _ => false;
-                var continuation = value.AsContinuation<int, int>();
                 var expected = value;
 
-                var actual = continuation.If(predicate)(_addOne);
+                var actual = value.If(predicate)(_addOne);
 
-                Assert.NotEqual(expected, actual);
+                Assert.Equal(expected, actual);
             }
 
             [Property(Verbose = true)]
             public void Continuation_executes_if_predicate_holds(int value)
             {
                 Predicate<int> predicate = _ => true;
-                var continuation = value.AsContinuation<int, int>();
                 var expected = value + 1;
 
-                var actual = continuation.If(predicate)(_addOne);
+                var actual = value.If(predicate)(_addOne);
 
                 Assert.Equal(expected, actual);
-            }
-
-            [Property(Verbose = true)]
-            public void Continuation_executes_when_no_exception_occurs(int value)
-            {
-                var continuation = value.AsContinuation<int, Either<Exception,int>>();
-                var expected = value + 1;
-
-                var actual = continuation.Try(_addOne)(i => i.AsEither<Exception, int>());
-
-                actual.Match(exception => false, i => (i == expected));
-            }
-
-            [Property(Verbose = true)]
-            public void Continuation_does_not_execute_when_an_exception_occurs(int value)
-            {
-                var continuation = value.AsContinuation<int, Either<Exception,int>>();
-                var expected = new DivideByZeroException();
-
-                var actual = continuation.Try(i => i / 0 )(i => i.AsEither<Exception, int>());
-
-                Assert.Equal(expected.Message, actual.Left.Message);
-            }
-
-            [Property(Verbose = true)]
-            public void A_continuation_does_not_execute_when_an_exception_occurs(int value)
-            {
-                var expected = new DivideByZeroException();
-
-                var actual = value.Try(i => i / 0 )(i => i.AsEither<Exception, int>());
-
-                Assert.Equal(expected.Message, actual.Left.Message);
             }
         }
     }

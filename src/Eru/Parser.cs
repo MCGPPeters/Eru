@@ -59,13 +59,13 @@ namespace Eru
         }
 
         /// <summary>
-        /// First of all, the parser is applied to the input string, 
-        /// yielding a list of (value, char[]) pairs / tuples. Now since func is a 
-        /// function that takes a value and returns a parser, 
-        /// it can be applied to each value (and unconsumed input char[]) in turn.
-        /// This results in a list of lists of (value, char[]) pairs,
-        /// that can then be flattened to a single list using concat
-        ///</summary>
+        ///     First of all, the parser is applied to the input string,
+        ///     yielding a list of (value, char[]) pairs / tuples. Now since func is a
+        ///     function that takes a value and returns a parser,
+        ///     it can be applied to each value (and unconsumed input char[]) in turn.
+        ///     This results in a list of lists of (value, char[]) pairs,
+        ///     that can then be flattened to a single list using concat
+        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TU"></typeparam>
         /// <param name="parser"></param>

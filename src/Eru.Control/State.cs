@@ -1,5 +1,5 @@
 using System;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Eru.Control
 {
@@ -9,7 +9,8 @@ namespace Eru.Control
             =>
                 state => Tuple.Create(value, state);
 
-        public static StateFunc<TSource, TState> Return<TSource, TState>(this TSource source, Func<TState, TState> determineInitialState)
+        public static StateFunc<TSource, TState> Return<TSource, TState>(this TSource source,
+            Func<TState, TState> determineInitialState)
             =>
                 state => Tuple.Create(source, determineInitialState(state));
 
@@ -17,7 +18,8 @@ namespace Eru.Control
             =>
                 unit.Return<Unit, TState>();
 
-        public static StateFunc<TResult, TState> Bind<TSource, TState, TResult>(this StateFunc<TSource, TState> stateFunc, Func<TSource, StateFunc<TResult, TState>> function)
+        public static StateFunc<TResult, TState> Bind<TSource, TState, TResult>(
+            this StateFunc<TSource, TState> stateFunc, Func<TSource, StateFunc<TResult, TState>> function)
             =>
                 previousState =>
                 {
@@ -34,9 +36,7 @@ namespace Eru.Control
             this StateFunc<TSource, TState> stateFunc, Func<TSource, StateFunc<TResult, TState>> function,
             Func<TResult, TOutput> map)
             =>
-                stateFunc.Bind(source => function(source).Bind(result => map(result).Return<TOutput,TState>()));
-
-       
+                stateFunc.Bind(source => function(source).Bind(result => map(result).Return<TOutput, TState>()));
 
         public static StateFunc<TState, TState> Get<TState>()
             =>
@@ -46,7 +46,8 @@ namespace Eru.Control
             =>
                 oldState => Tuple.Create(Unit.Instance, newState);
 
-        public static StateFunc<TResult, TState> Select<TSource, TState, TResult>(this StateFunc<TSource, TState> stateFunc, Func<TSource, TResult> map)
+        public static StateFunc<TResult, TState> Select<TSource, TState, TResult>(
+            this StateFunc<TSource, TState> stateFunc, Func<TSource, TResult> map)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
             return state =>
@@ -80,6 +81,31 @@ namespace Eru.Control
             };
 
             return loop(initialState);
+        }
+
+        public static Either<Exception, TResult> Try<TSource, TState, TResult>(this TSource source, TState initialState,
+            Func<TState, bool> continueWhile, Func<TState, TState> updateState, Func<TSource, TResult> function)
+        {
+            Func<TSource, Either<Exception, TResult>> tryCatch = subject =>
+            {
+                try
+                {
+                    return function(subject).AsEither<Exception, TResult>();
+                }
+                catch (Exception ex)
+                {
+                    return ex.Fail<Exception, TResult>();
+                }
+            };
+
+            return For(source, initialState, continueWhile, updateState, tryCatch).Item1;
+        }
+
+        public static async Task<Either<Exception, TResult>> TryAsync<TSource, TState, TResult>(this TSource source,
+            Func<TSource, TResult> function, TState initialState, Func<TState, bool> continueWhile,
+            Func<TState, TState> updateState)
+        {
+            return await Task.Run(() => Try(source, initialState, continueWhile, updateState, function));
         }
     }
 }

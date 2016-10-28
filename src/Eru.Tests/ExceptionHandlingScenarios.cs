@@ -6,6 +6,7 @@ using Eru.Control;
 using Eru.ErrorHandling;
 using FluentAssertions;
 using FsCheck;
+using FsCheck.Xunit;
 using Xunit;
 
 // ReSharper disable EqualExpressionComparison
@@ -21,115 +22,94 @@ namespace Eru.Tests
             Exception
         }
 
-        [Fact]
-        public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result()
+        [Property(Verbose = true)]
+        public void Dividing_an_integer_by_a_non_zero_number_returns_the_expected_result(int dividend,
+            PositiveInt divisor)
         {
-            Prop.ForAll(Arb.From(Gen.Choose(1, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)),
-                (dividend, divisor) => dividend
-                    .Try(x => x/divisor, Identifier.Exception)
-                    .ShouldBeEquivalentTo(new Either<Failure<Identifier>, int>(dividend/divisor)))
-                .VerboseCheckThrowOnFailure();
+            dividend
+                .Try(x => x/divisor.Item, Identifier.Exception)
+                .ShouldBeEquivalentTo(new Either<Failure<Identifier>, int>(dividend/divisor.Item));
         }
 
-        [Fact]
-        public void Dividing_an_integer_by_zero_returns_an_exception()
+        [Property(Verbose = true)]
+        public void Dividing_an_integer_by_zero_returns_an_exception(int dividend)
         {
-            Prop.ForAll(Arb.From(Gen.Choose(0, int.MaxValue)), dividend => dividend
+            dividend
                 .Try(x => x/0, Identifier.Exception)
                 .ShouldBeEquivalentTo(new Either<Failure<Identifier>, int>(
-                    new Exception<Identifier>(Identifier.Exception, new DivideByZeroException()))))
-                .VerboseCheckThrowOnFailure();
+                    new Exception<Identifier>(Identifier.Exception, new DivideByZeroException())));
         }
 
-        [Fact]
-        public void Chaining_of_try_blocks_is_possible_for_disparately_typed_return_values()
+        [Property(Verbose = true)]
+        public void Chaining_of_try_blocks_is_possible_for_disparately_typed_return_values(int dividend,
+            PositiveInt divisor, PositiveInt secondDivisor)
         {
-            Prop.ForAll(Arb.From(Gen.Choose(0, int.MaxValue)), Arb.From(Gen.Choose(1, int.MaxValue)),
-                Arb.From(Gen.Choose(1, int.MaxValue)), (dividend, divisor, secondDivisor) =>
-                {
-                    var expectedResult = new Either<Failure<Identifier>, int>(dividend/divisor/secondDivisor);
-                    return dividend
-                        .Try(x => x/divisor, Identifier.Exception)
-                        .Try(x => x/secondDivisor, Identifier.Exception)
-                        .Equals(expectedResult);
-                })
-                .VerboseCheckThrowOnFailure();
+            var expectedResult = new Either<Failure<Identifier>, int>(dividend/divisor.Item/secondDivisor.Item);
+            dividend
+                .Try(x => x/divisor.Item, Identifier.Exception)
+                .Try(x => x/secondDivisor.Item, Identifier.Exception)
+                .ShouldBeEquivalentTo(expectedResult);
         }
 
-        [Fact]
-        public void Retry_should_return_the_expected_failure_when_the_condition_does_not_hold()
+        [Property(Verbose = true)]
+        public void Retry_should_return_the_expected_failure_when_the_condition_does_not_hold(
+            PositiveInt numberOfRetries, int dividend)
         {
             var expectedResult =
                 new Either<Failure<Identifier>, int>(
                     new Exception<Identifier>(Identifier.Exception, new DivideByZeroException()));
-            var arbitraryNumberOfRetries = Arb.From(Gen.Choose(1, 50));
-            var arbitraryDividend = Arb.From(Gen.Choose(1, 50));
-            Prop.ForAll(arbitraryNumberOfRetries, arbitraryDividend,
-                (retry, dividend) =>
-                {
-                    var retryCount = 0;
-                    return dividend
-                        .Retry(x => x/0, Identifier.Exception)
-                        .While(() => retry != retryCount++)
-                        .Equals(expectedResult);
-                })
-                .VerboseCheckThrowOnFailure();
+            var retryCount = 0;
+
+            dividend
+                .Retry(x => x/0, Identifier.Exception)
+                .While(() => numberOfRetries.Item != retryCount++)
+                .ShouldBeEquivalentTo(expectedResult);
         }
 
-        [Fact]
-        public void Retry_should_retry_only_as_long_as_the_call_fails()
+        [Property(Verbose = true)]
+        public void Retry_should_retry_only_as_long_as_the_call_fails(PositiveInt numberOfRetries)
         {
-            var arbitraryNumberOfRetries = Arb.From(Gen.Choose(1, 50));
-            var arbitraryDividend = Arb.From(Gen.Choose(1, 50));
-            Prop.ForAll(arbitraryNumberOfRetries, arbitraryDividend, (retry, dividend) =>
-            {
-                var retryCount = 0;
-                var expectedResult = new Either<Failure<Identifier>, int>(0);
-                if (retryCount != 0)
-                    expectedResult = new Either<Failure<Identifier>, int>(dividend/retryCount);
+            var retryCount = 0;
 
-                return dividend
-                    .Retry(x => x/retryCount, Identifier.Exception)
-                    .While(() => retry != retryCount++)
-                    .Equals(expectedResult);
-            })
-                .VerboseCheckThrowOnFailure();
+            retryCount
+                .Retry(_ =>
+                {
+                    if (numberOfRetries.Item != retryCount) throw new Exception();
+                    return retryCount;
+                }, Identifier.Exception)
+                .While(() => numberOfRetries.Item != retryCount++)
+                .Right.Should().Be(numberOfRetries.Item);
         }
 
         [Fact]
         public async Task Retry_can_run_asynchronously()
         {
-            var expectedResult = new Either<Failure<Identifier>, int>(6);
+            var expectedResult = new Either<Exception, int>(6);
             var i = 0;
-            Func<bool> predicate = () => 3 != i++;
 
             var actualResult = await 6
-                .Retry(x => x/i, Identifier.Exception)
-                .WhileAsync(predicate);
+                .TryAsync(x => x/i++, 0, x => x < 1, x => x + 1);
 
+            actualResult
+                .ShouldBeEquivalentTo(expectedResult);
             actualResult.ShouldBeEquivalentTo(expectedResult, "6 / 1 = 1 which is called at the second iteration");
-            i.ShouldBeEquivalentTo(1, "The function call has to be retried 1 time before it doesn't throw any More");
+            i.ShouldBeEquivalentTo(2, "The function call has to be retried before it doesn't throw any More");
         }
 
         [Fact]
         public async Task Trying_to_connect_to_a_non_existing_SQL_database_as_a_real_world_example_will_fail()
         {
-            var expectedResult =
-                new Either<Failure<Identifier>, SqlConnection>(
-                    new Failure<Identifier>(Identifier.Exception));
-            var i = 0;
-            Func<bool> predicate = () => 3 != i++;
+            var expectedResult = "The ConnectionString property has not been initialized.";
 
             var actualResult = await new SqlConnection()
-                .Retry(connection =>
+                .TryAsync(connection =>
                 {
                     connection.Open();
                     return connection;
-                }, Identifier.Exception)
-                .WhileAsync(predicate);
+                }, 0, i => i < 3, i => i + 1);
 
             actualResult
-                .ShouldBeEquivalentTo(expectedResult, "Cannot open a connection without specifying a data source or server.");
+                .Left.Message.ShouldBeEquivalentTo(expectedResult);
         }
     }
 }
