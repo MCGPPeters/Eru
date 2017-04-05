@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Eru
+﻿namespace Eru
 {
+    using System;
+
     public struct Unit : IComparable<Unit>, IEquatable<Unit>
     {
         public static readonly Unit Instance = new Unit();

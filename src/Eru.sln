@@ -7,10 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eru", "Eru\Eru.csproj", "{1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eru.Tests", "Eru.Tests\Eru.Tests.csproj", "{FE580A67-78C5-49C4-8516-E942CCDEA587}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eru.Control", "Eru.Control\Eru.Control.csproj", "{DA67E1E5-C7F6-4B16-8359-E70C554AC4C6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eru.ErrorHandling", "Eru.ErrorHandling\Eru.ErrorHandling.csproj", "{C06604D0-647D-4CA6-BA67-068745589EF1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
