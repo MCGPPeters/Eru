@@ -5,15 +5,15 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Eru.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct("Eru.Tests")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCopyright("Copyright © Microsoft 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]
 
-[assembly: Guid("e50ef8b3-805f-4ce8-a78b-561ec9d1cabf")]
+[assembly: Guid("cdba9102-8ad4-44f5-b44a-b81d1328ee9a")]
 
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
