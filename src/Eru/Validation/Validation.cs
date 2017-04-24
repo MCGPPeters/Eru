@@ -7,7 +7,7 @@
     public static class Validation
     {
         private static Either<TCauseIdentifier[], TRight> Assert<TRight, TCauseIdentifier>(TRight source,
-            IEnumerable<Property<TCauseIdentifier, TRight>> properties)
+            params Property<TCauseIdentifier, TRight>[] properties)
         {
             var propertiesThatDoNotHold = properties
                 .Where(rule => !rule.Holds(source))
@@ -21,13 +21,13 @@
 
         public static Either<TCauseIdentifier[], TRight> Check<TRight, TCauseIdentifier>(
             this Either<TCauseIdentifier[], TRight> source,
-            IEnumerable<Property<TCauseIdentifier, TRight>> properties)
+            params Property<TCauseIdentifier, TRight>[] properties)
         {
             return source.Bind(right => Assert(right, properties));
         }
 
         public static Either<TCauseIdentifier[], TRight> Check<TRight, TCauseIdentifier>(this TRight source,
-            IEnumerable<Property<TCauseIdentifier, TRight>> properties)
+            params Property<TCauseIdentifier, TRight>[] properties)
         {
             return Check(source.Return<TCauseIdentifier[], TRight>(), properties);
         }
@@ -37,14 +37,14 @@
             params Predicate<TRight>[] rules)
         {
             return Check(source.Return<string[], TRight>(),
-                rules.Select(predicate => new Property<string, TRight>(cause, predicate)));
+                rules.Select(predicate => new Property<string, TRight>(cause, predicate)).ToArray());
         }
 
         public static Either<string[], TRight> Check<TRight>(this Either<string[], TRight> source,
             string cause,
             params Predicate<TRight>[] rules)
         {
-            return Check(source, rules.Select(predicate => new Property<string, TRight>(cause, predicate)));
+            return Check(source, rules.Select(predicate => new Property<string, TRight>(cause, predicate)).ToArray());
         }
     }
 }
