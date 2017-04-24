@@ -62,17 +62,17 @@ Task("RunTests")
         });
 });
 
-Task("CopyPackages")
+Task("MovePackages")
     .IsDependentOn("Build")
     .Does(() =>
 {
     var files = GetFiles("./src/Eru*/**/*.nupkg");
-    CopyFiles(files, "./artifacts");
+    MoveFiles(files, "./artifacts");
 
 });
 
 Task("NuGetPublish")
-    .IsDependentOn("CopyPackages")
+    .IsDependentOn("MovePackages")
     .Does(() =>
     {        
         var APIKey = EnvironmentVariable("NUGETAPIKEY");
