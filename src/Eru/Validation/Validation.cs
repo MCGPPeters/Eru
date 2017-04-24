@@ -40,6 +40,13 @@
                 rules.Select(predicate => new Property<string, TRight>(cause, predicate)).ToArray());
         }
 
+        public static Either<string[], TRight> Check<TRight>(this TRight source,
+            params Predicate<TRight>[] rules)
+        {
+            return Check(source.Return<string[], TRight>(),
+                rules.Select(predicate => new Property<string, TRight>(Guid.NewGuid().ToString(), predicate)).ToArray());
+        }
+
         public static Either<string[], TRight> Check<TRight>(this Either<string[], TRight> source,
             string cause,
             params Predicate<TRight>[] rules)
