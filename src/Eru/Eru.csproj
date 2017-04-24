@@ -8,6 +8,7 @@
     <PackageProjectUrl>https://github.com/MCGPPeters/Eru</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/MCGPPeters/Eru/blob/master/LICENSE</PackageLicenseUrl>
     <Version>$(SemVer)</Version>
+    <Authors>Maurice CGP Peters</Authors>
   </PropertyGroup>
 
   <ItemGroup>
