@@ -33,6 +33,14 @@ namespace Eru
                 right => function(right).Return<TLeft, TResult>());
         }
 
+        public static Either<TResult, TRight> MapLeft<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
+            Func<TLeft, TResult> function)
+        {
+            return either.Match(
+                left => function(left).Fail<TResult, TRight>(),
+                right => right.Return<TResult, TRight>());
+        }
+
         public static Either<TLeft, TResult> Select<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
             Func<TRight, TResult> function)
         {
