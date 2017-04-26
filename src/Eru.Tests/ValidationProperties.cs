@@ -39,19 +39,18 @@ namespace Eru.Tests
                 Name = ""
             };
 
-            person.Check(Properties)
-                .Match(
-                    failure =>
+            person
+                .Check(Properties)
+                .Match((_, __) =>
+                    {
+                        Fail();
+                        return Unit.Instance;
+                    }, failure =>
                     {
                         var expectedPropertyIdentifiers =
                             Properties.Select(property => property.Identifier);
 
                         Assert.Equal(expectedPropertyIdentifiers, failure);
-                        return Unit.Instance;
-                    },
-                    _ =>
-                    {
-                        Fail();
                         return Unit.Instance;
                     });
         }
@@ -64,15 +63,14 @@ namespace Eru.Tests
                     x => !string.IsNullOrWhiteSpace(x),
                     x => x.Equals("hasValue"))
                 .Match(
-                    actualPropertyIdentifiers =>
+                    (_, __) =>
+                    {
+                        Fail();
+                        return Unit.Instance;
+                    }, actualPropertyIdentifiers =>
                     {
                         const string expectedPropertyIdentifier = "String must have a value";
                         Assert.Contains(expectedPropertyIdentifier, actualPropertyIdentifiers);
-                        return Unit.Instance;
-                    },
-                    _ =>
-                    {
-                        Fail();
                         return Unit.Instance;
                     });
         }
@@ -91,15 +89,14 @@ namespace Eru.Tests
                 .Check("Has a valid age", p => p.Age >= 0)
                 .Check("Has a valid name", p => string.IsNullOrWhiteSpace(p.Name))
                 .Match(
-                    actualPropertyIdentifiers =>
+                    (_, __) =>
+                    {
+                        Fail();
+                        return Unit.Instance;
+                    }, actualPropertyIdentifiers =>
                     {
                         const string expectedPropertyIdentifier = "Has a valid age";
                         Assert.Contains(expectedPropertyIdentifier, actualPropertyIdentifiers);
-                        return Unit.Instance;
-                    },
-                    _ =>
-                    {
-                        Fail();
                         return Unit.Instance;
                     });
             ;
