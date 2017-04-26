@@ -6,7 +6,7 @@
 
     public static class Validation
     {
-        private static Either<TCauseIdentifier[], TRight> Assert<TRight, TCauseIdentifier>(TRight source,
+        private static Either<TRight, TCauseIdentifier[]> Assert<TRight, TCauseIdentifier>(TRight source,
             params Property<TCauseIdentifier, TRight>[] properties)
         {
             var propertiesThatDoNotHold = properties
@@ -15,8 +15,8 @@
                 .ToArray();
 
             return propertiesThatDoNotHold.Any()
-                ? Either<TCauseIdentifier[], TRight>.Create(propertiesThatDoNotHold)
-                : Either<TCauseIdentifier[], TRight>.Create(source);
+                ? source(propertiesThatDoNotHold)
+                : source.Return();
         }
 
         public static Either<TCauseIdentifier[], TRight> Check<TRight, TCauseIdentifier>(

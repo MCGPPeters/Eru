@@ -1,91 +1,115 @@
 namespace Eru
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     public static class Either
     {
-        public static Either<TLeft, TRight> Return<TLeft, TRight>(this TRight value)
+        public static Either<TSuccess, TMessage> Return<TSuccess, TMessage>(this TSuccess value, IEnumerable<TMessage> messages)
         {
-            return Either<TLeft, TRight>.Create(value);
+            return new Either<TSuccess, TMessage>.Success(value, messages);
         }
 
-        public static Either<TLeft, TRight> AsEither<TLeft, TRight>(this TRight value)
+        public static Either<TSuccess, TMessage> Return<TSuccess, TMessage>(this TSuccess value)
         {
-            return Return<TLeft, TRight>(value);
+            return new Either<TSuccess, TMessage>.Success(value);
         }
 
-        public static Either<TLeft, TRight> Fail<TLeft, TRight>(this TLeft value)
+        public static Either<TSuccess, TMessage> AsEither<TSuccess, TMessage>(this TSuccess value, IEnumerable<TMessage> messages)
         {
-            return Either<TLeft, TRight>.Create(value);
+            return value.Return(messages);
         }
 
-        public static Either<TLeft, TResult> Bind<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
-            Func<TRight, Either<TLeft, TResult>> function)
+        public static Either<TSuccess, TMessage> Fail<TSuccess, TMessage>(this IEnumerable<TMessage> messages)
         {
-            return either.Match(left => left.Fail<TLeft, TResult>(), function);
+            return new Either<TSuccess, TMessage>.Failure(messages.ToArray());
         }
 
-        public static Either<TLeft, TResult> Map<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
-            Func<TRight, TResult> function)
-        {
-            return either.Match(
-                left => left.Fail<TLeft, TResult>(),
-                right => function(right).Return<TLeft, TResult>());
-        }
-
-        public static Either<TResult, TRight> MapLeft<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
-            Func<TLeft, TResult> function)
+        public static Either<TResult, TMessage> Bind<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
+            Func<TSuccess, Either<TResult, TMessage>> function)
         {
             return either.Match(
-                left => function(left).Fail<TResult, TRight>(),
-                right => right.Return<TResult, TRight>());
+                (success, messages) => function(success).MergeMessages(messages),
+                messages => new Either<TResult, TMessage>.Failure(messages)
+            );
         }
 
-        public static Either<TLeft, TResult> Select<TLeft, TRight, TResult>(this Either<TLeft, TRight> either,
-            Func<TRight, TResult> function)
+        public static Either<TResult, TMessage> Map<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
+            Func<TSuccess, TResult> function)
+        {
+            return either.Match(
+                (success, messages) => Return(function(success), messages),
+                messages => new Either<TResult, TMessage>.Failure(messages));
+        }
+
+        public static Either<TSuccess, TResult> MapMessages<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
+            Func<TMessage, TResult> function)
+        {
+            return either.Match(
+                (success, messages) => Return(success, messages.Select(function)),
+                messages => Fail<TSuccess, TResult>(messages.Select(function)));
+        }
+
+        public static TResult Match<TSuccess, TMessage, TResult>(this Either<TSuccess, TMessage> either, Func<TSuccess, IEnumerable<TMessage>, TResult> onSuccess,
+            Func<IEnumerable<TMessage>, TResult> onFailure)
+        {
+            switch (either)
+            {
+                case Either<TSuccess, TMessage>.Success s:
+                    return onSuccess(s.Value, s.Messages);
+                case Either<TSuccess, TMessage>.Failure f:
+                    return onFailure(f.Messages);
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        public static Either<TSuccess, TMessage> MergeMessages<TSuccess, TMessage>(
+            this Either<TSuccess, TMessage> either, IEnumerable<TMessage> messages)
+        {
+            return either
+                .Match(
+                    (success, msgs) => Return(success, messages.Concat(msgs)),
+                    msgs => Fail<TSuccess, TMessage>(messages.Concat(msgs))
+                );
+        }
+
+        public static Either<TResult, TMessage> Select<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
+            Func<TSuccess, TResult> function)
         {
             return Map(either, function);
         }
     }
 
-    public struct Either<TLeft, TRight>
+    public abstract class Either<TSuccess, TMessage>
     {
-        private TLeft _left;
-        private TRight _right;
-        private bool _leftHasValue;
-
-        public static Either<TLeft, TRight> Create(TRight right)
+        public sealed class Success : Either<TSuccess, TMessage>
         {
-            return new Either<TLeft, TRight>
+            public Success(TSuccess value)
             {
-                _right = right
-            };
-        }
+                Value = value;
+                Messages = new List<TMessage>();
+            }
 
-        public static Either<TLeft, TRight> Create(TLeft left)
-        {
-            return new Either<TLeft, TRight>
+            public Success(TSuccess value, IEnumerable<TMessage> messages)
             {
-                _left = left,
-                _leftHasValue = true
-            };
+                Value = value;
+                Messages = messages;
+            }
+
+            public IEnumerable<TMessage> Messages { get; }
+            public TSuccess Value { get; }
         }
 
-        public TResult Match<TResult>(Func<TLeft, TResult> left,
-            Func<TRight, TResult> right)
+        public sealed class Failure : Either<TSuccess, TMessage>
         {
-            if (right == null) throw new ArgumentNullException(nameof(right));
-            if (left == null) throw new ArgumentNullException(nameof(left));
-            return _leftHasValue
-                ? left(_left)
-                : right(_right);
-        }
+            public Failure(IEnumerable<TMessage> messages)
+            {
+                Messages = messages;
+            }
 
-        public void Match(Action<TLeft> left)
-        {
-            if (left == null) throw new ArgumentNullException(nameof(left));
-            if (!_leftHasValue) throw new InvalidOperationException("Left has no value");
-            left(_left);
+            public IEnumerable<TMessage> Messages { get; }
         }
     }
 }
