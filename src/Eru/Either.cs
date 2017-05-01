@@ -65,6 +65,18 @@ namespace Eru
             }
         }
 
+        public static TResult MatchFailure<TSuccess, TMessage, TResult>(this Either<TSuccess, TMessage> either,
+            Func<IEnumerable<TMessage>, TResult> onFailure)
+        {
+            switch (either)
+            {
+                case Either<TSuccess, TMessage>.Failure f:
+                    return onFailure(f.Messages);
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
         public static Either<TSuccess, TMessage> MergeMessages<TSuccess, TMessage>(
             this Either<TSuccess, TMessage> either, IEnumerable<TMessage> messages)
         {
