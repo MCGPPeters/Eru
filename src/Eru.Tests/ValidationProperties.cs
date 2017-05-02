@@ -4,6 +4,8 @@ using Xunit;
 
 namespace Eru.Tests
 {
+    using static _;
+
     public class ValidationProperties
     {
         public ValidationProperties()
@@ -41,17 +43,17 @@ namespace Eru.Tests
 
             person
                 .Check(Properties)
-                .Match((_, __) =>
+                .Match(_ =>
                     {
                         Fail();
-                        return Unit.Instance;
+                        return Unit;
                     }, failure =>
                     {
-                        var expectedPropertyIdentifiers =
+                        var expectedPropertyIdentifier =
                             Properties.Select(property => property.Identifier);
 
-                        Assert.Equal(expectedPropertyIdentifiers, failure);
-                        return Unit.Instance;
+                        Assert.Equal(expectedPropertyIdentifier, failure.AsList());
+                        return Unit;
                     });
         }
 
@@ -63,16 +65,16 @@ namespace Eru.Tests
                     x => !string.IsNullOrWhiteSpace(x),
                     x => x.Equals("hasValue"))
                 .Match(
-                    (_, __) =>
+                    (_ =>
                     {
                         Fail();
-                        return Unit.Instance;
+                        return Unit;
                     }, actualPropertyIdentifiers =>
                     {
                         const string expectedPropertyIdentifier = "String must have a value";
                         Assert.Contains(expectedPropertyIdentifier, actualPropertyIdentifiers);
-                        return Unit.Instance;
-                    });
+                        return Unit;
+                    }));
         }
 
         [Fact(DisplayName =
@@ -86,18 +88,18 @@ namespace Eru.Tests
             };
 
             person
-                .Check("Has a valid age", p => p.Age >= 0)
-                .Check("Has a valid name", p => string.IsNullOrWhiteSpace(p.Name))
+                .Check("Must have a valid age", p => p.Age >= 0)
+                .Check("Must have a name", p => string.IsNullOrWhiteSpace(p.Name))
                 .Match(
                     (_, __) =>
                     {
                         Fail();
-                        return Unit.Instance;
+                        return Unit();
                     }, actualPropertyIdentifiers =>
                     {
-                        const string expectedPropertyIdentifier = "Has a valid age";
+                        const string expectedPropertyIdentifier = "Must have a valid age";
                         Assert.Contains(expectedPropertyIdentifier, actualPropertyIdentifiers);
-                        return Unit.Instance;
+                        return Unit();
                     });
             ;
         }

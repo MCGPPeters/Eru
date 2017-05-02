@@ -9,7 +9,7 @@
     {
         public static Parser<T> Fail<T>() =>
             _ =>
-                new (T, char[])[0];
+                new(T, char[])[0];
 
         public static Parser<TResult> Return<TResult>(TResult result) =>
             input =>
@@ -26,7 +26,7 @@
         public static (T parsedToken, char[] remainder)[] Parse<T>(this Parser<T> parser, string input)
         {
             return string.IsNullOrWhiteSpace(input)
-                ? new (T, char[])[0]
+                ? new(T, char[])[0]
                 : parser.Parse(input.ToCharArray());
         }
 
@@ -72,7 +72,7 @@
 
                 return parsers.Any()
                     ? parsers.SelectMany(tuples => tuples).ToArray()
-                    : new (TU, char[])[0];
+                    : new(TU, char[])[0];
             };
         }
 

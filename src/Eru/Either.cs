@@ -1,127 +1,110 @@
 namespace Eru
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
 
-    public static class Either
+    public static partial class _
     {
-        public static Either<TSuccess, TMessage> Return<TSuccess, TMessage>(this TSuccess value, IEnumerable<TMessage> messages)
-        {
-            return new Either<TSuccess, TMessage>.Success(value, messages);
-        }
 
-        public static Either<TSuccess, TMessage> Return<TSuccess, TMessage>(this TSuccess value)
-        {
-            return new Either<TSuccess, TMessage>.Success(value);
-        }
+        public static Either<TValue, TAlternative> Return<TValue, TAlternative>(this TValue value) =>
+            new Either<TValue, TAlternative>.Success(value);
 
-        public static Either<TSuccess, TMessage> AsEither<TSuccess, TMessage>(this TSuccess value, IEnumerable<TMessage> messages)
-        {
-            return value.Return(messages);
-        }
+        public static Either<TValue, TAlternative> AsEither<TValue, TAlternative>(this TValue value) =>
+            Return<TValue, TAlternative>(value);
 
-        public static Either<TSuccess, TMessage> Fail<TSuccess, TMessage>(this IEnumerable<TMessage> messages)
-        {
-            return new Either<TSuccess, TMessage>.Failure(messages.ToArray());
-        }
+        public static Either<TValue, TAlternative> ReturnAlternative<TValue, TAlternative>(this TAlternative alternative) =>
+            new Either<TValue, TAlternative>.Alternative(alternative);
 
-        public static Either<TResult, TMessage> Bind<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
-            Func<TSuccess, Either<TResult, TMessage>> function)
-        {
-            return either.Match(
-                (success, messages) => function(success).MergeMessages(messages),
-                messages => new Either<TResult, TMessage>.Failure(messages)
-            );
-        }
+        public static Either<TResult, TAlternative> Bind<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
+            Func<TValue, Either<TResult, TAlternative>> function) where TAlternative : IMonoid<TAlternative> =>
+                either.Match(success =>
+                    function(success), alternatives =>
+                        new Either<TResult, TAlternative>.Alternative(alternatives));
 
-        public static Either<TResult, TMessage> Map<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
-            Func<TSuccess, TResult> function)
-        {
-            return either.Match(
-                (success, messages) => Return(function(success), messages),
-                messages => new Either<TResult, TMessage>.Failure(messages));
-        }
+        public static Either<TResult, TAlternative> Then<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
+            Func<TValue, Either<TResult, TAlternative>> function) where TAlternative : IMonoid<TAlternative> =>
+                Bind(either, function);
 
-        public static Either<TSuccess, TResult> MapMessages<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
-            Func<TMessage, TResult> function)
-        {
-            return either.Match(
-                (success, messages) => Return(success, messages.Select(function)),
-                messages => Fail<TSuccess, TResult>(messages.Select(function)));
-        }
+        public static Either<TResult, TAlternative> SelectMany<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
+            Func<TValue, Either<TResult, TAlternative>> function) where TAlternative : IMonoid<TAlternative> =>
+                Bind(either, function);
 
-        public static TResult Match<TSuccess, TMessage, TResult>(this Either<TSuccess, TMessage> either, Func<TSuccess, IEnumerable<TMessage>, TResult> onSuccess,
-            Func<IEnumerable<TMessage>, TResult> onFailure)
+        public static Either<TResult, TAlternative> Map<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
+            Func<TValue, TResult> function) where TAlternative : IMonoid<TAlternative> =>
+                either.Bind(success =>
+                    Return<TResult, TAlternative>(function(success)));
+
+        public static Either<TValue, TResult> MapAlternatives<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TAlternative, TResult> function) where TAlternative : IMonoid<TAlternative> =>
+            either.Match(success =>
+                Return<TValue, TResult>(success), alternative =>
+                    ReturnAlternative<TValue, TResult>(function(alternative)));
+
+        public static Either<TValue, Nothing> Where<TValue, TAlternative>(this Either<TValue, TAlternative> either, Predicate<TValue> predicate) where TAlternative : IMonoid<TAlternative> =>
+            either
+                .MapAlternatives(msgs => Nothing)
+                .Bind(success =>
+                    predicate(success)
+                        ? Return<TValue, Nothing>(success)
+                        : ReturnAlternative<TValue, Nothing>(Nothing));
+
+        public static Either<TValue, Nothing> Filter<TValue, TAlternative>(this Either<TValue, TAlternative> either, Predicate<TValue> predicate) where TAlternative : IMonoid<TAlternative> =>
+            Where(either, predicate);
+
+        public static TResult Match<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either, Func<TValue, TResult> onSuccess,
+            Func<TAlternative, TResult> onFailure) where TAlternative : IMonoid<TAlternative>
         {
             switch (either)
             {
-                case Either<TSuccess, TMessage>.Success s:
-                    return onSuccess(s.Value, s.Messages);
-                case Either<TSuccess, TMessage>.Failure f:
-                    return onFailure(f.Messages);
+                case Either<TValue, TAlternative>.Success s:
+                    return onSuccess(s.Value);
+                case Either<TValue, TAlternative>.Alternative f:
+                    return onFailure(f.Value);
                 default:
                     throw new InvalidOperationException();
             }
         }
 
-        public static TResult MatchFailure<TSuccess, TMessage, TResult>(this Either<TSuccess, TMessage> either,
-            Func<IEnumerable<TMessage>, TResult> onFailure)
+        public static TResult MatchAlternative<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either,
+            Func<TAlternative, TResult> onAlternative) where TAlternative : IMonoid<TAlternative>
         {
             switch (either)
             {
-                case Either<TSuccess, TMessage>.Failure f:
-                    return onFailure(f.Messages);
+                case Either<TValue, TAlternative>.Alternative f:
+                    return onAlternative(f.Value);
                 default:
                     throw new InvalidOperationException();
             }
         }
 
-        public static Either<TSuccess, TMessage> MergeMessages<TSuccess, TMessage>(
-            this Either<TSuccess, TMessage> either, IEnumerable<TMessage> messages)
-        {
-            return either
-                .Match(
-                    (success, msgs) => Return(success, messages.Concat(msgs)),
-                    msgs => Fail<TSuccess, TMessage>(messages.Concat(msgs))
-                );
-        }
+        public static Either<TValue, TAlternative> MergeAlternatives<TValue, TAlternative>(this Either<TValue, TAlternative> either, TAlternative alternative) where TAlternative : IMonoid<TAlternative> =>
+                either.Match(success =>
+                    Return<TValue, TAlternative>(success), alt =>
+                        ReturnAlternative<TValue, TAlternative>(alternative.Concat(alt)));
 
-        public static Either<TResult, TMessage> Select<TMessage, TSuccess, TResult>(this Either<TSuccess, TMessage> either,
-            Func<TSuccess, TResult> function)
-        {
-            return Map(either, function);
-        }
+        public static Either<TResult, TAlternative> Select<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TValue, TResult> function) where TAlternative : IMonoid<TAlternative> =>
+            Map(either, function);
     }
 
-    public abstract class Either<TSuccess, TMessage>
+
+    public abstract class Either<TValue, TAlternative>
     {
-        public sealed class Success : Either<TSuccess, TMessage>
+        public sealed class Success : Either<TValue, TAlternative>
         {
-            public Success(TSuccess value)
+            public Success(TValue value)
             {
                 Value = value;
-                Messages = new List<TMessage>();
             }
 
-            public Success(TSuccess value, IEnumerable<TMessage> messages)
-            {
-                Value = value;
-                Messages = messages;
-            }
-
-            public IEnumerable<TMessage> Messages { get; }
-            public TSuccess Value { get; }
+            public TValue Value { get; }
         }
 
-        public sealed class Failure : Either<TSuccess, TMessage>
+        public sealed class Alternative : Either<TValue, TAlternative>
         {
-            public Failure(IEnumerable<TMessage> messages)
+            public Alternative(TAlternative alternative)
             {
-                Messages = messages;
+                Value = alternative;
             }
 
-            public IEnumerable<TMessage> Messages { get; }
+            public TAlternative Value { get; }
         }
     }
 }
