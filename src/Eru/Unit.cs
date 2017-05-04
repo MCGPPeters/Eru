@@ -1,6 +1,6 @@
 ﻿namespace Eru
 {
-    using global::System;
+    using System;
 
     public struct Unit : IComparable<Unit>, IEquatable<Unit>
     {

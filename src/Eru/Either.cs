@@ -15,42 +15,53 @@ namespace Eru
             new Either<TValue, TAlternative>.Alternative(alternative);
 
         public static Either<TResult, TAlternative> Bind<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
-            Func<TValue, Either<TResult, TAlternative>> function) where TAlternative : IMonoid<TAlternative> =>
-                either.Match(success =>
-                    function(success), alternatives =>
+            Func<TValue, Either<TResult, TAlternative>> function) =>
+                either.Match(function, alternatives =>
                         new Either<TResult, TAlternative>.Alternative(alternatives));
 
         public static Either<TResult, TAlternative> Then<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
-            Func<TValue, Either<TResult, TAlternative>> function) where TAlternative : IMonoid<TAlternative> =>
+            Func<TValue, Either<TResult, TAlternative>> function) =>
                 Bind(either, function);
 
         public static Either<TResult, TAlternative> SelectMany<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
-            Func<TValue, Either<TResult, TAlternative>> function) where TAlternative : IMonoid<TAlternative> =>
+            Func<TValue, Either<TResult, TAlternative>> function) =>
                 Bind(either, function);
 
         public static Either<TResult, TAlternative> Map<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either,
-            Func<TValue, TResult> function) where TAlternative : IMonoid<TAlternative> =>
+            Func<TValue, TResult> function) =>
                 either.Bind(success =>
                     Return<TResult, TAlternative>(function(success)));
 
-        public static Either<TValue, TResult> MapAlternatives<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TAlternative, TResult> function) where TAlternative : IMonoid<TAlternative> =>
-            either.Match(success =>
-                Return<TValue, TResult>(success), alternative =>
+        public static Either<TValue, TResult> MapAlternative<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TAlternative, TResult> function) =>
+            either.Match(Return<TValue, TResult>, alternative =>
                     ReturnAlternative<TValue, TResult>(function(alternative)));
 
-        public static Either<TValue, Nothing> Where<TValue, TAlternative>(this Either<TValue, TAlternative> either, Predicate<TValue> predicate) where TAlternative : IMonoid<TAlternative> =>
+        public static Either<TValue, TAlternative> Where<TValue, TAlternative>(this Either<TValue, TAlternative> either, Predicate<TValue> predicate, TAlternative alternative) =>
             either
-                .MapAlternatives(msgs => Nothing)
+                .Bind(success =>
+                    predicate(success)
+                        ? Return<TValue, TAlternative>(success)
+                        : ReturnAlternative<TValue, TAlternative>(alternative));
+
+
+        public static Either<TValue, Nothing> Where<TValue>(this TValue value, Predicate<TValue> predicate) =>
+            Return<TValue, Nothing>(value).Where(predicate, Nothing);
+
+        public static Either<TValue, Nothing> Where<TValue>(this Either<TValue, Nothing> either, Predicate<TValue> predicate) =>
+            either
+            .MapAlternative(alternative => Nothing)
                 .Bind(success =>
                     predicate(success)
                         ? Return<TValue, Nothing>(success)
                         : ReturnAlternative<TValue, Nothing>(Nothing));
 
-        public static Either<TValue, Nothing> Filter<TValue, TAlternative>(this Either<TValue, TAlternative> either, Predicate<TValue> predicate) where TAlternative : IMonoid<TAlternative> =>
-            Where(either, predicate);
+
+        public static Either<TValue, TNoMatch> Where<TValue, TNoMatch>(this TValue value, Predicate<TValue> predicate, TNoMatch alternative) =>
+            Return<TValue, TNoMatch>(value).Where(predicate, alternative);
+
 
         public static TResult Match<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either, Func<TValue, TResult> onSuccess,
-            Func<TAlternative, TResult> onFailure) where TAlternative : IMonoid<TAlternative>
+            Func<TAlternative, TResult> onFailure)
         {
             switch (either)
             {
@@ -64,7 +75,7 @@ namespace Eru
         }
 
         public static TResult MatchAlternative<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either,
-            Func<TAlternative, TResult> onAlternative) where TAlternative : IMonoid<TAlternative>
+            Func<TAlternative, TResult> onAlternative)
         {
             switch (either)
             {
@@ -75,12 +86,7 @@ namespace Eru
             }
         }
 
-        public static Either<TValue, TAlternative> MergeAlternatives<TValue, TAlternative>(this Either<TValue, TAlternative> either, TAlternative alternative) where TAlternative : IMonoid<TAlternative> =>
-                either.Match(success =>
-                    Return<TValue, TAlternative>(success), alt =>
-                        ReturnAlternative<TValue, TAlternative>(alternative.Concat(alt)));
-
-        public static Either<TResult, TAlternative> Select<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TValue, TResult> function) where TAlternative : IMonoid<TAlternative> =>
+        public static Either<TResult, TAlternative> Select<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TValue, TResult> function) =>
             Map(either, function);
     }
 
