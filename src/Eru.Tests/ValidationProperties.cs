@@ -1,12 +1,11 @@
-﻿using System.Linq;
-using Eru.Validation;
-using Xunit;
-using System;
+﻿using Xunit;
 
 namespace Eru.Tests
 {
     using static _;
 
+    using Eru.Validation;
+    using Eru;
 
     public class ValidationProperties
     {
@@ -32,7 +31,7 @@ namespace Eru.Tests
                 .Check(p => string.IsNullOrWhiteSpace(p.Name), "Must have a name")
                 .Match(_ => Fail(), error =>
                 {
-                    Assert.Equal("Must have a name", error.Message);
+                    Assert.Equal("Must have a name", error);
                     return Unit;
                 });
             ;

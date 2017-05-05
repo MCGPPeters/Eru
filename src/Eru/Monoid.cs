@@ -1,22 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Eru
 {
     public delegate T BinaryOperator<T>(T firstArgument, T secondArgument);
 
-    public class Monoid<T> : IMonoid<T>
+    public abstract class Monoid<T> : IMonoid<T>
     {
-        private readonly BinaryOperator<T> _binaryOperator;
+        protected Monoid(T identity) => Identity = identity;
 
-        public Monoid(T identity, BinaryOperator<T> binaryOperator)
-        {
-            Identity = identity;
-            _binaryOperator = binaryOperator;
-        }
 
         public T Identity { get; }
-        public T Append(T second) => _binaryOperator(Identity, second);
+        public abstract T Append(T t);
+
         public T Concat(IMonoid<T> other)
         {
             return Append(other.Identity);
@@ -24,7 +23,7 @@ namespace Eru
 
         public static T operator +(Monoid<T> first, Monoid<T> second)
         {
-            return first.Append(second.Identity);
+            return first.Concat(second);
         }
     }
 }

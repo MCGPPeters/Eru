@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Eru
@@ -5,7 +6,7 @@ namespace Eru
     public interface IMonoid<T>
     {
         T Identity { get; }
-        T Append(T second);
+        T Append(T t);
         T Concat(IMonoid<T> other);
     }
 }
