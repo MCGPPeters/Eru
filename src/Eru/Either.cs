@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
 namespace Eru
 {
     using System;
@@ -74,17 +77,39 @@ namespace Eru
             }
         }
 
-        public static TResult MatchAlternative<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either,
+        /// <summary>
+        /// If a value is represented, that value will be returned as a singleton list
+        /// Otherwise it will return the empty list
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TAlternative"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        public static IEnumerable<TValue> Value<TValue, TAlternative>(this Either<TValue, TAlternative> either)
+        {
+            if (either is Either<TValue, TAlternative>.Success s) yield return s.Value;
+        }
+
+        /// <summary>
+        /// If a alternative is represented, it will return that alternative as a singleton list. 
+        /// Otherwise it will return the empty list
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TAlternative"></typeparam>
+        /// <param name="either"></param>
+        /// <returns></returns>
+        public static IEnumerable<TAlternative> Alternative<TValue, TAlternative>(this Either<TValue, TAlternative> either)
+        {
+            if (either is Either<TValue, TAlternative>.Alternative a) yield return a.Value;
+        }
+
+
+        public static IEnumerable<TResult> MatchAlternative<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either,
             Func<TAlternative, TResult> onAlternative)
         {
-            switch (either)
-            {
-                case Either<TValue, TAlternative>.Alternative f:
-                    return onAlternative(f.Value);
-                default:
-                    throw new InvalidOperationException();
-            }
+            if (either is Either<TValue, TAlternative>.Alternative f) yield return onAlternative(f.Value);
         }
+
 
         public static Either<TResult, TAlternative> Select<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TValue, TResult> function) =>
             Map(either, function);

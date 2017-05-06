@@ -21,11 +21,11 @@ namespace Eru
         public static Either<TResult, Exception> Try<TValue, TResult>(this Either<TValue, Exception> either, Func<TValue, TResult> function) =>
             either.Bind(v => TryCatch(v, function));
 
-        public static Either<Unit, Exception> Try<TValue, TResult, TError>(this TValue value, Action<TValue> action)
+        public static Either<Unit, Exception> Try<TValue>(this TValue value, Action<TValue> action)
             => TryCatch(value, action.ToFunction());
 
-        public static Either<Unit, Exception> Try<TValue, TResult, TError>(this Either<TValue, Exception> either, Action<TValue> action) =>
-             either.Try(action.ToFunction());
+        public static Either<Unit, Exception> Try<TValue>(this Either<TValue, Exception> either, Action<TValue> action) =>
+             either.Map(action.ToFunction());
 
         public static Either<TValue, TAlternative> MapException<TValue, TAlternative>(this Either<TValue, Exception> either, Func<Exception, TAlternative> function) =>
             either.Match(Return<TValue, TAlternative>, alternative =>

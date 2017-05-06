@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
 
-namespace Eru.Validation
+namespace Eru
 {
-    using static _;
-
     public class Error : Error<string>
     {
         public Error(string identity) : base(identity)
@@ -57,27 +51,26 @@ namespace Eru.Validation
 
     public static class ValidationExtensions
     {
-        public static Func<TValue, Either<TValue, Error<TError>>> FailFast<TValue, TError>(
+        private static Func<TValue, Either<TValue, Error<TError>>> FailFast<TValue, TError>(
             Func<TValue, Either<TValue, Error<TError>>>[] validations) =>
                 value =>
                     validations.Aggregate(value.Return<TValue, Error<TError>>(), (current, validation) =>
                         current.Bind(_ => validation(value)));
 
-        public static Func<TValue, Either<TValue, Error<TError>>> HarvestErrors<TValue, TError>(Func<TValue, Either<TValue, Error<TError>>>[] validations)
+        private static Func<TValue, Either<TValue, Error<TError>>> HarvestErrors<TValue, TError>(Func<TValue, Either<TValue, Error<TError>>>[] validations)
              =>
-            value =>
-            {
-                var errors = validations.Select(validate => validate(value))
-                    .Select(validationResult => validationResult.Map(_ => value)).ToList();
-                return errors.Count == 0
-                    ? value.Return<TValue, Error<TError>>()
-                    : errors.Aggregate(default(Error<TError>).ReturnAlternative<TValue, Error<TError>>(), (current, next) =>
-                    {
-                        var currentError = current.MatchAlternative(error => error);
-                        var nextError = next.MatchAlternative(error => error);
-                        return _.ReturnAlternative<TValue, Error<TError>>(currentError.Append(nextError));
-                    });
-            };
+                value =>
+                {
+                    var errors = validations
+                        .Select(validate => validate(value))
+                        .SelectMany(either => either.Alternative())
+                        .ToList();
+
+                    return errors.Count == 0
+                        ? value.Return<TValue, Error<TError>>()
+                        : errors.Aggregate((current, next) => current.Append(next)).ReturnAlternative<TValue, Error<TError>>();
+                };
+                
 
         /// <summary>
         /// Validate and fail as soon as one validation fails and do not aggragate any error messages
@@ -104,27 +97,37 @@ namespace Eru.Validation
             params Func<TValue, Either<TValue, Error<TError>>>[] validations) =>
                 Check(value, HarvestErrors, validations);
 
-        public static Either<TValue, TError> Check<TValue, TError>(this TValue value,
+        private static Either<TValue, TError> Check<TValue, TError>(this TValue value,
             Func<Func<TValue, Either<TValue, TError>>[], Func<TValue, Either<TValue, TError>>> reduceValidations,
             params Func<TValue, Either<TValue, TError>>[] validations) =>
                 reduceValidations(validations)(value);
 
 
-        public static Either<TValue, Error<TError>> Check<TValue, TError>(this TValue value, Predicate<TValue> validate,
-            TError validationError) =>
+        public static Either<TValue, Error<TError>> Check<TValue, TError>(this TValue value, params (Predicate<TValue> rule, Error<TError> error)[] validations) =>
                     value
                         .Return<TValue, Error<TError>>()
-                        .Check(validate, validationError);
+                        .Check(validations);
 
         public static Either<TValue, Error<TError>> Check<TValue, TError>(this Either<TValue, Error<TError>> either,
             params Func<TValue, Either<TValue, Error<TError>>>[] validations) =>
                     either.Bind(value => Check(value, validations));
 
-        public static Either<TValue, Error<TError>> Check<TValue, TError>(this Either<TValue, Error<TError>> either, Predicate<TValue> validation, Error<TError> validationError) =>
-                either.Bind(value => Check(value, v =>
-                    validation(v)
-                        ? v.Return<TValue, Error<TError>>()
-                        : validationError.ReturnAlternative<TValue, Error<TError>>()));
+        public static Either<TValue, Error<TError>> Check<TValue, TError>(this Either<TValue, Error<TError>> either,
+            params (Predicate<TValue> rule, Error<TError> error)[] validations) =>
+            either.Bind(value => 
+                Check(value, validations.
+                        Select<(Predicate<TValue> rule, Error<TError> error), Func<TValue, Either<TValue, Error <TError>>>> (tuple => 
+                            v => tuple.rule(v) 
+                                ? v.Return<TValue, Error<TError>>() 
+                                : tuple.error.ReturnAlternative<TValue, Error<TError>>()).ToArray()));
+
+        public static Either<TValue, Error<TError>> Check<TValue, TError>(this Either<TValue, Error<TError>> either,
+            Predicate<TValue> rule, Error<TError> error) 
+                => Check(either, (rule, error));
+
+        public static Either<TValue, Error<TError>> Check<TValue, TError>(this TValue value,
+            Predicate<TValue> rule, Error<TError> error)
+            => Check(value, (rule, error));
 
     }
 }
