@@ -15,8 +15,14 @@ namespace Eru
 
     public class Error : Monoid<Error>
     {
+        public Error(params string[] messages)
+        {
+            Messages = messages;
+        }
 
         public string[] Messages { get; }
+
+        public override Error Identity => Messages;
 
         public static implicit operator Error(string message)
         {
@@ -24,17 +30,19 @@ namespace Eru
         }
 
         public static implicit operator Error(string[] messages)
-            => messages.Select(m => new Error(m)).Aggregate((error, error1) => error.Append(error1));
+        {
+            return messages.Select(m => new Error(m)).Aggregate((error, error1) => error.Append(error1));
+        }
 
-        public static implicit operator string[] (Error error)
+        public static implicit operator string[](Error error)
         {
             return error.Messages;
         }
 
-        public override Error Identity => Messages;
-        public override Error Append(Error t) => new Error(t);
-
-        public Error(params string[] messages) => Messages = messages;
+        public override Error Append(Error t)
+        {
+            return new Error(t);
+        }
     }
 }
 
@@ -229,6 +237,4 @@ public static class ValidationExtensions
     {
         return CheckQuick(either, (rule, error));
     }
-
-
 }
