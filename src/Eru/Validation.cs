@@ -93,6 +93,11 @@ namespace Eru
                         .Return<TValue, Error>()
                         .Check(validations);
 
+        public static Either<TValue, Error> CheckQuick<TValue>(this TValue value, params (Predicate<TValue> rule, Error error)[] validations) =>
+                    value
+                        .Return<TValue, Error>()
+                        .CheckQuick(validations);
+
         private static Either<TValue, Error> Check<TValue>(this Either<TValue, Error> either,
             params Func<TValue, Either<TValue, Error>>[] validations) =>
                     either.Bind(value => Check(value, validations));
@@ -106,13 +111,28 @@ namespace Eru
                               ? v.Return<TValue, Error>()
                               : tuple.error.ReturnAlternative<TValue, Error>()).ToArray()));
 
+        public static Either<TValue, Error> CheckQuick<TValue>(this Either<TValue, Error> either,
+            params (Predicate<TValue> rule, Error error)[] validations) =>
+            either.Bind(value =>
+                CheckQuick(value, validations.
+                        Select<(Predicate<TValue> rule, Error error), Func<TValue, Either<TValue, Error>>>(tuple =>
+                          v => tuple.rule(v)
+                              ? v.Return<TValue, Error>()
+                              : tuple.error.ReturnAlternative<TValue, Error>()).ToArray()));
+
         public static Either<TValue, Error> Check<TValue>(this Either<TValue, Error> either,
             Predicate<TValue> rule, Error error)
                 => Check(either, (rule, error));
 
+        public static Either<TValue, Error> CheckQuick<TValue>(this Either<TValue, Error> either,
+            Predicate<TValue> rule, Error error)
+                => CheckQuick(either, (rule, error));
+
         public static Either<TValue, Error> Check<TValue>(this TValue value,
             Predicate<TValue> rule, Error error)
             => Check(value, (rule, error));
+
+
 
     }
 }
