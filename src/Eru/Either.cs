@@ -113,6 +113,19 @@ namespace Eru
 
         public static Either<TResult, TAlternative> Select<TAlternative, TValue, TResult>(this Either<TValue, TAlternative> either, Func<TValue, TResult> function) =>
             Map(either, function);
+
+        public static Either<TResult, TAlternative> Apply<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either, Either<Func<TValue, TResult>, TAlternative> function)
+            where TAlternative : Monoid<TAlternative>
+            => function
+                .Match(func =>
+                    either
+                        .Match(value =>
+                            Return<TResult, TAlternative>(func(value)),
+                            ReturnAlternative<TResult, TAlternative>), alternative =>
+                                either
+                                    .Match(_ =>
+                                        ReturnAlternative<TResult, TAlternative>(alternative), alternative1 =>
+                                            ReturnAlternative<TResult, TAlternative>(alternative.Append(alternative1))));
     }
 
 

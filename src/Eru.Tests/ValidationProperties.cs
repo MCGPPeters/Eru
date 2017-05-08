@@ -28,10 +28,10 @@ namespace Eru.Tests
             person
                 .Check(p => p.Age >= 0, "Must have a valid age")
                 .Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                .Match(_ => Fail(), error =>
+                .MatchAlternative(error =>
                 {
                     Assert.Equal(Error("Must have a name"), error, new ErrorEqualityComparer());
-                    return Unit;
+                    return new[]{Unit};
                 });
             ;
         }
@@ -82,6 +82,28 @@ namespace Eru.Tests
                 .Match(_ => Fail(), error =>
                 {
                     Assert.Equal(Error("Must have a valid age"), error, new ErrorEqualityComparer());
+                    return Unit;
+                });
+            ;
+        }
+
+        [Fact(DisplayName =
+            "Check will aggregate all failed validations")]
+        public void Test6()
+        {
+            var person = new Person
+            {
+                Age = 11,
+                Name = ""
+            };
+
+
+            person
+                .Check(p => p.Age >= 18, "Must have a valid age")
+                .Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                .Match(_ => Fail(), error =>
+                {
+                    Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
                     return Unit;
                 });
             ;

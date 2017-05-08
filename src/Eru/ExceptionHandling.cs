@@ -6,7 +6,7 @@ namespace Eru
 {
     public static partial class _
     {
-        public static Either<TResult, Exception> TryCatch<TValue, TResult>(this TValue value, Func<TValue, TResult> function)
+        public static Either<TResult, Exception> Try<TValue, TResult>(this TValue value, Func<TValue, TResult> function)
         {
             try
             {
@@ -19,10 +19,10 @@ namespace Eru
         }
 
         public static Either<TResult, Exception> Try<TValue, TResult>(this Either<TValue, Exception> either, Func<TValue, TResult> function) =>
-            either.Bind(v => TryCatch(v, function));
+            either.Bind(v => Try(v, function));
 
         public static Either<Unit, Exception> Try<TValue>(this TValue value, Action<TValue> action)
-            => TryCatch(value, action.ToFunction());
+            => Try(value, action.ToFunction());
 
         public static Either<Unit, Exception> Try<TValue>(this Either<TValue, Exception> either, Action<TValue> action) =>
              either.Map(action.ToFunction());
