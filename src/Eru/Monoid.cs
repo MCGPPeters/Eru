@@ -10,7 +10,7 @@ namespace Eru
 
     public abstract class Monoid<T> : IMonoid<T>
     {
-        protected Monoid(T identity) => Identity = identity;
+        protected Monoid(T message) => Identity = message;
 
 
         public T Identity { get; }
