@@ -1,29 +1,39 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Eru
 {
     public static partial class _
     {
-        public static Error Error(string message) => new Error(message);
+        public static Error Error(params string[] message) => new Error(message);
     }
 
-    public class Error : Monoid<string>
+    public class Error
     {
-        public Error(string message) : base(message)
+        public Error(params string[] messages)
         {
+            Messages = messages;
         }
 
-        public string Message => Identity;
+        public string[] Messages { get; }
 
         public static implicit operator Error(string message)
             => new Error(message);
 
-        public static implicit operator string(Error error)
-            => error.Identity;
+        public static implicit operator Error(string[] messages)
+            => new Error(messages);
 
-        public override string Append(string t) => Message + t;
+        public static implicit operator string[] (Error error)
+            => error.Messages;
 
+    }
+
+    public class ErrorEqualityComparer : EqualityComparer<Error>
+    {
+        public override bool Equals(Error x, Error y) => x.Messages.SequenceEqual(x.Messages);
+
+        public override int GetHashCode(Error obj) => obj.GetHashCode();
     }
 
     public static class ValidationExtensions
@@ -45,7 +55,7 @@ namespace Eru
 
                     return errors.Count == 0
                         ? value.Return<TValue, Error>()
-                        : errors.Aggregate((current, next) => current.Append(next)).ReturnAlternative<TValue, Error>();
+                        : errors.Aggregate((current, next) => _.Error(current.Messages.Concat(next.Messages).ToArray())).ReturnAlternative<TValue, Error>();
                 };
 
 

@@ -30,7 +30,7 @@ namespace Eru.Tests
                 .Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
                 .Match(_ => Fail(), error =>
                 {
-                    Assert.Equal("Must have a name", error);
+                    Assert.Equal(Error("Must have a name"), error, new ErrorEqualityComparer());
                     return Unit;
                 });
             ;
@@ -46,14 +46,14 @@ namespace Eru.Tests
                 Name = ""
             };
 
-            var personValidations = new (Predicate<Person> rule, Error error)[]{(p => p.Age >= 18, "Must have a valid age"), (
+            var personValidations = new(Predicate<Person> rule, Error error)[]{(p => p.Age >= 18, "Must have a valid age"), (
                 p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")};
 
             person
                 .Check(personValidations)
                 .Match(_ => Fail(), error =>
                 {
-                    Assert.Equal("Must have a valid ageMust have a name", error);
+                    Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
                     return Unit;
                 });
             ;
