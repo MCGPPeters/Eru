@@ -51,11 +51,11 @@ namespace Eru
                 Return<TResult, TAlternative>(function(success)));
         }
 
-        public static Either<TValue, TResult> MapAlternative<TAlternative, TValue, TResult>(
-            this Either<TValue, TAlternative> either, Func<TAlternative, TResult> function)
+        public static Either<TValue, TAlternativeResult> MapAlternative<TAlternative, TValue, TAlternativeResult>(
+            this Either<TValue, TAlternative> either, Func<TAlternative, TAlternativeResult> function)
         {
-            return either.Match(Return<TValue, TResult>, alternative =>
-                ReturnAlternative<TValue, TResult>(function(alternative)));
+            return either.Match(Return<TValue, TAlternativeResult>, alternative =>
+                ReturnAlternative<TValue, TAlternativeResult>(function(alternative)));
         }
 
         public static Either<TValue, TAlternative> Where<TValue, TAlternative>(this Either<TValue, TAlternative> either,
@@ -93,6 +93,10 @@ namespace Eru
             return Return<TValue, TNoMatch>(value).Where(predicate, alternative);
         }
 
+        public static Unit Match<TValue, TAlternative>(this Either<TValue, TAlternative> either,
+            Action<TValue> onSuccess,
+            Action<TAlternative> onFailure) =>
+                Match(either, onSuccess.ToFunction(), onFailure.ToFunction());
 
         public static TResult Match<TValue, TAlternative, TResult>(this Either<TValue, TAlternative> either,
             Func<TValue, TResult> onSuccess,

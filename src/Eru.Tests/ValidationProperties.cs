@@ -1,4 +1,5 @@
 ﻿using System;
+using FsCheck.Xunit;
 using Xunit;
 
 
@@ -8,10 +9,9 @@ namespace Eru.Tests
 
     public class ValidationProperties
     {
-        private static Unit Fail()
+        private static void Fail()
         {
             Assert.True(false);
-            return Unit;
         }
 
 
@@ -28,10 +28,9 @@ namespace Eru.Tests
             person
                 .Check(p => p.Age >= 0, "Must have a valid age")
                 .Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                .MatchAlternative(error =>
+                .Match(success => {}, error =>
                 {
                     Assert.Equal(Error("Must have a name"), error, new ErrorEqualityComparer());
-                    return new[]{Unit};
                 });
             ;
         }
@@ -57,7 +56,6 @@ namespace Eru.Tests
                     error =>
                     {
                         Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
-                        return Unit;
                     });
             ;
         }
@@ -82,7 +80,6 @@ namespace Eru.Tests
                 .Match(_ => Fail(), error =>
                 {
                     Assert.Equal(Error("Must have a valid age"), error, new ErrorEqualityComparer());
-                    return Unit;
                 });
             ;
         }
@@ -104,8 +101,51 @@ namespace Eru.Tests
                 .Match(_ => Fail(), error =>
                 {
                     Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
-                    return Unit;
                 });
+            ;
+        }
+
+        [Fact(DisplayName =
+            "Check will aggregate all failed validations using LINQ")]
+        public void Test7()
+        {
+            var person = new Person
+            {
+                Age = 11,
+                Name = ""
+            };
+
+            var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
+                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                         select y;
+
+
+            result.Match(_ => Fail(), error =>
+            {
+                Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
+            });
+            ;
+        }
+
+        [Property(DisplayName =
+            "Check will execute valid computations using LINQ", Verbose = true)]
+        public void Test8(int ageToAdd)
+        {
+            var person = new Person
+            {
+                Age = 19,
+                Name = "John"
+            };
+
+            var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
+                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                         select y.Age + ageToAdd;
+
+
+            result.Match(p =>
+            {
+                Assert.Equal(19 + ageToAdd, p);
+            }, error => Fail());
             ;
         }
     }
