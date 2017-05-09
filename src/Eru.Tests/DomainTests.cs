@@ -11,7 +11,7 @@ namespace Eru.Tests
         public void Test1()
         {
             var accountCreated = new AccountCreated(DateTimeOffset.UtcNow);
-            var account = AggregateRoot.Create<Account>(accountCreated, AccountExtensions.HandleEvent);
+            var account = new Account(accountCreated.Status);
 
 
             Assert.Equal("AccountCreated", accountCreated.Name);
@@ -20,7 +20,7 @@ namespace Eru.Tests
 
     public static class AccountExtensions
     {
-        public static AggregateRoot<Account> HandleEvent(this AggregateRoot<Account> account, Event @event)
+        public static Account HandleEvent(this Account account, Event @event)
         {
             switch (@event)
             {
@@ -32,7 +32,7 @@ namespace Eru.Tests
         }
     }
 
-    public class Account : AggregateRoot<Account>
+    public class Account
     {
         public Account(Status status)
         {
@@ -42,50 +42,11 @@ namespace Eru.Tests
         public Status Status { get; }
     }
 
-    public class AggregateRoot<T> where T : AggregateRoot<T>
-    {
-        public AggregateRoot()
-        {
-            EntityIdentifier = Guid.NewGuid();
-        }
-
-        public EntityIdentifier EntityIdentifier { get; }
-    }
-
     public static class AggregateRoot
     {
-        public static AggregateRoot<T> Create<T>(Event initialEvent,
-            Func<AggregateRoot<T>, Event, AggregateRoot<T>> handleEvent)
-            where T : AggregateRoot<T>
-        {
-            return new AggregateRoot<T>().Apply(initialEvent, handleEvent);
-        }
-
-        public static AggregateRoot<TEntity> Apply<TEntity>(this AggregateRoot<TEntity> aggregateRoot,
-            Event @event, Func<AggregateRoot<TEntity>, Event, AggregateRoot<TEntity>> handle)
-            where TEntity : AggregateRoot<TEntity>
-        {
-            return @event.EntityIdentifier == aggregateRoot.EntityIdentifier
-                ? handle(aggregateRoot, @event)
-                : aggregateRoot;
-        }
-
-        public static AggregateRoot<TEntity> From<TEntity>(IEnumerable<Event> events, Event initialEvent,
-            Func<AggregateRoot<TEntity>, Event, AggregateRoot<TEntity>> handleEvent)
-            where TEntity : AggregateRoot<TEntity>
-        {
-            return events.Aggregate(Create(initialEvent, handleEvent), (current, next) =>
-                current.Apply(next, handleEvent));
-        }
-
-        public static AggregateRoot<TEntity> Handle<TEntity>(this AggregateRoot<TEntity> aggregateRoot, Event @event,
-            Func<AggregateRoot<TEntity>, Event, AggregateRoot<TEntity>> handleEvent)
-            where TEntity : AggregateRoot<TEntity>
-        {
-            return @event.EntityIdentifier == aggregateRoot.EntityIdentifier
-                ? handleEvent(aggregateRoot, @event)
-                : aggregateRoot;
-        }
+        public static TEntity From<TEntity>(this TEntity seed, IEnumerable<Event> events, Event initialEvent,
+            Func<TEntity, Event, TEntity> apply) =>
+            events.Aggregate(seed, apply);
     }
 }
 
