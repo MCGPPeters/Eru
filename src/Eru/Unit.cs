@@ -1,34 +1,19 @@
-﻿namespace Eru
-{
-    using System;
+﻿using System;
 
+namespace Eru
+{
     public struct Unit : IComparable<Unit>, IEquatable<Unit>
     {
         public static readonly Unit Instance = new Unit();
 
-        public int CompareTo(Unit other)
-        {
-            return 0;
-        }
+        public int CompareTo(Unit other) => 0;
 
-        public bool Equals(Unit other)
-        {
-            return true;
-        }
+        public bool Equals(Unit other) => true;
 
-        public override bool Equals(object obj)
-        {
-            return obj is Unit;
-        }
+        public override bool Equals(object obj) => obj is Unit;
 
-        public override int GetHashCode()
-        {
-            return 0;
-        }
+        public override int GetHashCode() => 0;
 
-        public override string ToString()
-        {
-            return "{}";
-        }
+        public override string ToString() => "{}";
     }
 }

@@ -1,111 +1,84 @@
 using System;
-using System.Threading.Tasks;
 
-namespace Eru.Control
+namespace Eru
 {
-    public static class State
-    {
-        public static StateFunc<TSource, TState> Return<TSource, TState>(this TSource value)
-            =>
-                state => Tuple.Create(value, state);
+    public delegate (T value, TState state) StatefulComputation<T, TState>(TState state);
 
-        public static StateFunc<TSource, TState> Return<TSource, TState>(this TSource source,
+    public static partial class _
+    {
+        public static StatefulComputation<T, TState> AsStateful<T, TState>(this T value)
+            =>
+                state => (value, state);
+
+        public static StatefulComputation<T, TState> AsStateful<T, TState>(this T source,
             Func<TState, TState> determineInitialState)
             =>
-                state => Tuple.Create(source, determineInitialState(state));
+                state => (source, determineInitialState(state));
 
-        public static StateFunc<Unit, TState> Return<TState>(Unit unit)
+        public static StatefulComputation<Unit, TState> AsStateful<TState>(Unit unit)
             =>
-                unit.Return<Unit, TState>();
+                AsStateful<Unit, TState>(unit);
 
-        public static StateFunc<TResult, TState> Bind<TSource, TState, TResult>(
-            this StateFunc<TSource, TState> stateFunc, Func<TSource, StateFunc<TResult, TState>> function)
+        public static StatefulComputation<TResult, TState> Bind<T, TState, TResult>(
+            this StatefulComputation<T, TState> statefulComputation,
+            Func<T, StatefulComputation<TResult, TState>> function)
             =>
                 previousState =>
                 {
-                    var parameterWithNewState = stateFunc(previousState);
-                    var newState = parameterWithNewState.Item2;
+                    var parameterWithNewState = statefulComputation(previousState);
+                    var n = parameterWithNewState.state;
 
-                    var parameter = parameterWithNewState.Item1;
+                    var parameter = parameterWithNewState.value;
                     var result = function(parameter);
 
-                    return result(newState);
+                    return result(n);
                 };
 
-        public static StateFunc<TOutput, TState> SelectMany<TSource, TState, TResult, TOutput>(
-            this StateFunc<TSource, TState> stateFunc, Func<TSource, StateFunc<TResult, TState>> function,
+        public static StatefulComputation<TOutput, TState> SelectMany<T, TState, TResult, TOutput>(
+            this StatefulComputation<T, TState> statefulComputation,
+            Func<T, StatefulComputation<TResult, TState>> function,
             Func<TResult, TOutput> map)
             =>
-                stateFunc.Bind(source => function(source).Bind(result => map(result).Return<TOutput, TState>()));
+                statefulComputation.Bind(source => function(source)
+                    .Bind(result => AsStateful<TOutput, TState>(map(result))));
 
-        public static StateFunc<TState, TState> Get<TState>()
+        public static StatefulComputation<TState, TState> Get<TState>()
             =>
-                state => Tuple.Create(state, state);
+                state => (state, state);
 
-        public static StateFunc<Unit, TState> Set<TState>(TState newState)
+        public static StatefulComputation<Unit, TState> Set<TState>(TState newState)
             =>
-                oldState => Tuple.Create(Unit.Instance, newState);
+                oldState => (Unit.Instance, newState);
 
-        public static StateFunc<TResult, TState> Select<TSource, TState, TResult>(
-            this StateFunc<TSource, TState> stateFunc, Func<TSource, TResult> map)
+        public static StatefulComputation<TResult, TState> Select<T, TState, TResult>(
+            this StatefulComputation<T, TState> statefulComputation, Func<T, TResult> map)
         {
             if (map == null) throw new ArgumentNullException(nameof(map));
             return state =>
             {
-                var resT = stateFunc(state);
-                return Tuple.Create(map(resT.Item1), resT.Item2);
+                var statefulComputationResult = statefulComputation(state);
+                return (map(statefulComputationResult.value), statefulComputationResult.state);
             };
         }
 
-        public static Tuple<TResult, TState> For<TSource, TState, TResult>(this TSource source, TState initialState,
-            Func<TState, bool> continueWhile, Func<TState, TState> updateState, Func<TSource, TResult> function)
+        public static (TResult value, TState state) For<T, TState, TResult>(this T source,
+            TState initialState,
+            Func<TState, bool> continueWhile, Func<TState, TState> updateState, Func<T, TResult> function)
         {
-            var stateFunc = source.Return<TSource, TState>();
+            var stateFunc = AsStateful<T, TState>(source);
 
-            StateFunc<TResult, TState> loop = null;
-
-            loop = state =>
+            (TResult value, TState state) Loop(TState state)
             {
-                var m = stateFunc
-                    .Bind(x => Get<TState>()
-                        .Bind(y => Set(updateState(y))
-                            .Bind(z => Return<TResult, TState>(function(x)))));
+                var m = stateFunc.Bind(x => Get<TState>()
+                    .Bind(y => Set(updateState(y))
+                        .Bind(z => AsStateful<TResult, TState>(function(x)))));
 
-                if (continueWhile(state))
-                {
-                    return m.Bind(result => loop)(state);
-                }
-                ;
+                return continueWhile(state)
+                    ? m.Bind<TResult, TState, TResult>(result => Loop)(state)
+                    : m(state);
+            }
 
-                return m(state);
-            };
-
-            return loop(initialState);
-        }
-
-        public static Either<Exception, TResult> Try<TSource, TState, TResult>(this TSource source, TState initialState,
-            Func<TState, bool> continueWhile, Func<TState, TState> updateState, Func<TSource, TResult> function)
-        {
-            Func<TSource, Either<Exception, TResult>> tryCatch = subject =>
-            {
-                try
-                {
-                    return function(subject).AsEither<Exception, TResult>();
-                }
-                catch (Exception ex)
-                {
-                    return ex.Fail<Exception, TResult>();
-                }
-            };
-
-            return For(source, initialState, continueWhile, updateState, tryCatch).Item1;
-        }
-
-        public static async Task<Either<Exception, TResult>> TryAsync<TSource, TState, TResult>(this TSource source,
-            Func<TSource, TResult> function, TState initialState, Func<TState, bool> continueWhile,
-            Func<TState, TState> updateState)
-        {
-            return await Task.Run(() => Try(source, initialState, continueWhile, updateState, function));
+            return Loop(initialState);
         }
     }
 }

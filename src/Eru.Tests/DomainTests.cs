@@ -34,17 +34,14 @@ namespace Eru.Tests
 
     public class Account
     {
-        public Account(Status status)
-        {
-            Status = status;
-        }
+        public Account(Status status) => Status = status;
 
         public Status Status { get; }
     }
 
     public static class AggregateRoot
     {
-        public static TEntity From<TEntity>(this TEntity seed, IEnumerable<Event> events, Event initialEvent,
+        public static TEntity From<TEntity>(this TEntity seed, IEnumerable<Event> events,
             Func<TEntity, Event, TEntity> apply) =>
             events.Aggregate(seed, apply);
     }
@@ -52,48 +49,29 @@ namespace Eru.Tests
 
 public struct EntityIdentifier
 {
-    public bool Equals(EntityIdentifier other)
-    {
-        return Value.Equals(other.Value);
-    }
+    public bool Equals(EntityIdentifier other) => Value.Equals(other.Value);
 
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
-        return obj is EntityIdentifier && Equals((EntityIdentifier)obj);
+        return obj is EntityIdentifier && Equals((EntityIdentifier) obj);
     }
 
-    public override int GetHashCode()
-    {
-        return Value.GetHashCode();
-    }
+    public override int GetHashCode() => Value.GetHashCode();
 
     public Guid Value { get; }
 
-    public EntityIdentifier(Guid value)
-    {
-        Value = value;
-    }
+    public EntityIdentifier(Guid value) => Value = value;
 
-    public static implicit operator EntityIdentifier(Guid identifier)
-    {
-        return new EntityIdentifier(identifier);
-    }
+    public static implicit operator EntityIdentifier(Guid identifier) => new EntityIdentifier(identifier);
 
-    public static implicit operator Guid(EntityIdentifier identifier)
-    {
-        return identifier.Value;
-    }
+    public static implicit operator Guid(EntityIdentifier identifier) => identifier.Value;
 
-    public static bool operator ==(EntityIdentifier entityIdentifier, EntityIdentifier other)
-    {
-        return entityIdentifier.Equals(other.Value);
-    }
+    public static bool operator ==(EntityIdentifier entityIdentifier, EntityIdentifier other) =>
+        entityIdentifier.Equals(other.Value);
 
-    public static bool operator !=(EntityIdentifier entityIdentifier, EntityIdentifier other)
-    {
-        return !entityIdentifier.Equals(other.Value);
-    }
+    public static bool operator !=(EntityIdentifier entityIdentifier, EntityIdentifier other) => !entityIdentifier
+        .Equals(other.Value);
 }
 
 public enum Status
@@ -103,10 +81,7 @@ public enum Status
 
 public class AccountCreated : Event
 {
-    public AccountCreated(DateTimeOffset timestamp) : base(timestamp)
-    {
-        Status = Status.Active;
-    }
+    public AccountCreated(DateTimeOffset timestamp) : base(timestamp) => Status = Status.Active;
 
     public Status Status { get; }
 }

@@ -1,240 +1,181 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Eru;
 
 namespace Eru
 {
     public static partial class _
     {
-        public static Error Error(params string[] messages)
-        {
-            return new Error(messages);
-        }
+        public static Error Error(params string[] messages) => new Error(messages);
     }
 
     public class Error : Monoid<Error>
     {
-        public Error(params string[] messages)
-        {
-            Messages = messages;
-        }
+        public Error(params string[] messages) => Messages = messages;
 
         public string[] Messages { get; }
 
         public override Error Identity => Messages;
 
-        public static implicit operator Error(string message)
-        {
-            return new Error(message);
-        }
+        public static implicit operator Error(string message) => new Error(message);
 
-        public static implicit operator Error(string[] messages)
-        {
-            return messages.Select(m => new Error(m)).Aggregate((error, error1) => error.Append(error1));
-        }
+        public static implicit operator Error(string[] messages) => messages.Select(m => new Error(m))
+            .Aggregate((current, next) => current.Append(next));
 
-        public static implicit operator string[](Error error)
-        {
-            return error.Messages;
-        }
+        public static implicit operator string[](Error error) => error.Messages;
 
-        public override Error Append(Error t)
-        {
-            return new Error(t);
-        }
-    }
-}
-
-public class ErrorEqualityComparer : EqualityComparer<Error>
-{
-    public override bool Equals(Error x, Error y)
-    {
-        return x.Messages.SequenceEqual(x.Messages);
+        public override Error Append(Error t) => new Error(t);
     }
 
-    public override int GetHashCode(Error obj)
+    public static partial class _
     {
-        return obj.GetHashCode();
-    }
-}
-
-public static class ValidationExtensions
-{
-    private static Func<TValue, Either<TValue, Error>> FailFast<TValue>(
-        Func<TValue, Either<TValue, Error>>[] validations)
-    {
-        return value =>
-            validations.Aggregate(value.Return<TValue, Error>(), (current, validation) =>
+        private static Func<T, Either<T, Error>> FailFast<T>(
+            Func<T, Either<T, Error>>[] validations) => value =>
+            validations.Aggregate(value.AsEither<T, Error>(), (current, validation) =>
                 current.Bind(_ => validation(value)));
-    }
 
-    private static Func<TValue, Either<TValue, Error>> HarvestErrors<TValue>(
-        Func<TValue, Either<TValue, Error>>[] validations)
-    {
-        return value =>
+        private static Func<T, Either<T, Error>> HarvestErrors<T>(
+            Func<T, Either<T, Error>>[] validations) => value =>
         {
             var errors = validations
                 .Select(validate => validate(value))
-                .SelectMany(either => either.Alternative())
+                .SelectMany(either => either.Otherwise())
                 .ToList();
 
             return errors.Count == 0
-                ? value.Return<TValue, Error>()
-                : errors.Aggregate((current, next) => _.Error(current.Append(next)))
-                    .ReturnAlternative<TValue, Error>();
+                ? value.AsEither<T, Error>()
+                : errors.Aggregate((current, next) => Error(current.Append(next)))
+                    .AsEither<T, Error>();
         };
-    }
 
-    private static Either<TValue, Error> Check<TValue>(this TValue value,
-        Func<Func<TValue, Either<TValue, Error>>[], Func<TValue, Either<TValue, Error>>> reduceValidations,
-        params Func<TValue, Either<TValue, Error>>[] validations)
-    {
-        return reduceValidations(validations)(value);
-    }
+        private static Either<T, Error> Check<T>(this T value,
+            Func<Func<T, Either<T, Error>>[], Func<T, Either<T, Error>>> reduceValidations,
+            params Func<T, Either<T, Error>>[] validations) => reduceValidations(validations)(value);
 
-    private static Either<TValue, Error> Check<TValue>(this Either<TValue, Error> either,
-        params Func<TValue, Either<TValue, Error>>[] validations)
-    {
-        return either.Bind(value => Check(value, validations));
-    }
+        private static Either<T, Error> Check<T>(this Either<T, Error> either,
+            params Func<T, Either<T, Error>>[] validations) =>
+            either.Bind(value => Check(value, validations));
 
-    /// <summary>
-    ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="value"></param>
-    /// <param name="validations"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> CheckQuick<TValue>(this TValue value,
-        params Func<TValue, Either<TValue, Error>>[] validations)
-    {
-        return Check(value, FailFast, validations);
-    }
+        /// <summary>
+        ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="validations"></param>
+        /// <returns></returns>
+        public static Either<T, Error> CheckQuick<T>(this T value,
+            params Func<T, Either<T, Error>>[] validations) => Check(value, FailFast, validations);
 
-    /// <summary>
-    ///     Validate and aggregate all validation errors that may occur into 1 error
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="value"></param>
-    /// <param name="validations"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> Check<TValue>(this TValue value,
-        params Func<TValue, Either<TValue, Error>>[] validations)
-    {
-        return Check(value, HarvestErrors, validations);
-    }
+        /// <summary>
+        ///     Validate and aggregate all validation errors that may occur into 1 error
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="validations"></param>
+        /// <returns></returns>
+        public static Either<T, Error> Check<T>(this T value,
+            params Func<T, Either<T, Error>>[] validations) => Check(value, HarvestErrors, validations);
 
-    /// <summary>
-    ///     Validate and aggregate all validation errors that may occur into 1 error
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="value"></param>
-    /// <param name="validations"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> Check<TValue>(this TValue value,
-        params (Predicate<TValue> rule, Error error)[] validations)
-    {
-        return value
-            .Return<TValue, Error>()
+        /// <summary>
+        ///     Validate and aggregate all validation errors that may occur into 1 error
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="validations"></param>
+        /// <returns></returns>
+        public static Either<T, Error> Check<T>(this T value,
+            params (Predicate<T> rule, Error error)[] validations) => value
+            .AsEither<T, Error>()
             .Check(validations);
-    }
 
-    /// <summary>
-    ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="value"></param>
-    /// <param name="validations">A list rules and corresponding errors</param>
-    /// <returns></returns>
-    public static Either<TValue, Error> CheckQuick<TValue>(this TValue value,
-        params (Predicate<TValue> rule, Error error)[] validations)
-    {
-        return value
-            .Return<TValue, Error>()
+        /// <summary>
+        ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="validations">A list rules and corresponding errors</param>
+        /// <returns></returns>
+        public static Either<T, Error> CheckQuick<T>(this T value,
+            params (Predicate<T> rule, Error error)[] validations) => value
+            .AsEither<T, Error>()
             .CheckQuick(validations);
-    }
 
-    /// <summary>
-    ///     Validate and aggregate all validation errors that may occur into 1 error
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="either"></param>
-    /// <param name="validations"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> Check<TValue>(this Either<TValue, Error> either,
-        params (Predicate<TValue> rule, Error error)[] validations)
-    {
-        return either.Bind(value =>
+        /// <summary>
+        ///     Validate and aggregate all validation errors that may occur into 1 error
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="validations"></param>
+        /// <returns></returns>
+        public static Either<T, Error> Check<T>(this Either<T, Error> either,
+            params (Predicate<T> rule, Error error)[] validations) => either.Bind(value =>
             Check(value, validations
-                .Select<(Predicate<TValue> rule, Error error), Func<TValue, Either<TValue, Error>>>(tuple =>
+                .Select<(Predicate<T> rule, Error error), Func<T, Either<T, Error>>>(tuple =>
                     v => tuple.rule(v)
-                        ? v.Return<TValue, Error>()
-                        : tuple.error.ReturnAlternative<TValue, Error>()).ToArray()));
-    }
+                        ? v.AsEither<T, Error>()
+                        : tuple.error.AsEither<T, Error>()).ToArray()));
 
-    /// <summary>
-    ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="either"></param>
-    /// <param name="validations"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> CheckQuick<TValue>(this Either<TValue, Error> either,
-        params (Predicate<TValue> rule, Error error)[] validations)
-    {
-        return either.Bind(value =>
+        /// <summary>
+        ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="validations"></param>
+        /// <returns></returns>
+        public static Either<T, Error> CheckQuick<T>(this Either<T, Error> either,
+            params (Predicate<T> rule, Error error)[] validations) => either.Bind(value =>
             CheckQuick(value, validations
-                .Select<(Predicate<TValue> rule, Error error), Func<TValue, Either<TValue, Error>>>(tuple =>
+                .Select<(Predicate<T> rule, Error error), Func<T, Either<T, Error>>>(tuple =>
                     v => tuple.rule(v)
-                        ? v.Return<TValue, Error>()
-                        : tuple.error.ReturnAlternative<TValue, Error>()).ToArray()));
+                        ? v.AsEither<T, Error>()
+                        : tuple.error.AsEither<T, Error>()).ToArray()));
+
+        /// <summary>
+        ///     Validate and aggregate all validation errors that may occur into 1 error
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="rule"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static Either<T, Error> Check<T>(this Either<T, Error> either,
+            Predicate<T> rule, Error error)
+        {
+            Func<T, T> identity = value => value;
+
+            var validation = identity
+                .AsEither<Func<T, T>, Error>().MapOtherwise(_ => error);
+
+            return either.Apply(validation);
+        }
+
+        /// <summary>
+        ///     Validate and aggregate all validation errors that may occur into 1 error
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="rule"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static Either<T, Error> Check<T>(this T value,
+            Predicate<T> rule, Error error) => Check(value, (rule, error));
+
+        /// <summary>
+        ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="either"></param>
+        /// <param name="rule"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static Either<T, Error> CheckQuick<T>(this Either<T, Error> either,
+            Predicate<T> rule, Error error) => CheckQuick(either, (rule, error));
     }
 
-    /// <summary>
-    ///     Validate and aggregate all validation errors that may occur into 1 error
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="either"></param>
-    /// <param name="rule"></param>
-    /// <param name="error"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> Check<TValue>(this Either<TValue, Error> either,
-        Predicate<TValue> rule, Error error)
+    public class ErrorEqualityComparer : EqualityComparer<Error>
     {
-        Func<TValue, TValue> identity = value => value;
+        public override bool Equals(Error x, Error y) => x.Messages.SequenceEqual(x.Messages);
 
-        var validation = identity
-            .Return<Func<TValue, TValue>, Error>().MapAlternative(_ => error);
-
-        return either.Apply(validation);
-    }
-
-    /// <summary>
-    ///     Validate and aggregate all validation errors that may occur into 1 error
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="value"></param>
-    /// <param name="rule"></param>
-    /// <param name="error"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> Check<TValue>(this TValue value,
-        Predicate<TValue> rule, Error error)
-    {
-        return Check(value, (rule, error));
-    }
-
-    /// <summary>
-    ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
-    /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="either"></param>
-    /// <param name="rule"></param>
-    /// <param name="error"></param>
-    /// <returns></returns>
-    public static Either<TValue, Error> CheckQuick<TValue>(this Either<TValue, Error> either,
-        Predicate<TValue> rule, Error error)
-    {
-        return CheckQuick(either, (rule, error));
+        public override int GetHashCode(Error obj) => obj.GetHashCode();
     }
 }

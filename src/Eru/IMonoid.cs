@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Eru
 {
     public interface IMonoid<T>

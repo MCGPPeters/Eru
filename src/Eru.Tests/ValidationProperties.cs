@@ -1,17 +1,32 @@
-﻿using System;
-using FsCheck.Xunit;
+﻿using FsCheck.Xunit;
 using Xunit;
-
+using static Xunit.Assert;
 
 namespace Eru.Tests
 {
-    using static Eru._;
+    using static _;
 
     public class ValidationProperties
     {
-        private static void Fail()
+        private static void Fail() => True(false);
+
+        [Property(DisplayName =
+            "Check will execute valid computations using LINQ", Verbose = true)]
+        public void Test8(int ageToAdd)
         {
-            Assert.True(false);
+            var person = new Person
+            {
+                Age = 19,
+                Name = "John"
+            };
+
+            var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
+                from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                select y.Age + ageToAdd;
+
+
+            result.Match(p => { Equal(19 + ageToAdd, p); }, error => Fail());
+            ;
         }
 
 
@@ -28,10 +43,8 @@ namespace Eru.Tests
             person
                 .Check(p => p.Age >= 0, "Must have a valid age")
                 .Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                .Match(success => {}, error =>
-                {
-                    Assert.Equal(Error("Must have a name"), error, new ErrorEqualityComparer());
-                });
+                .Match(success => { },
+                    error => { Equal(Error("Must have a name"), error, new ErrorEqualityComparer()); });
             ;
         }
 
@@ -47,15 +60,16 @@ namespace Eru.Tests
 
             person
                 .Check
-                    (
-                        (p => p.Age >= 18, "Must have a valid age"),
-                        (p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                    )
+                (
+                    (p => p.Age >= 18, "Must have a valid age"),
+                    (p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                )
                 .Match(
                     _ => Fail(),
                     error =>
                     {
-                        Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
+                        Equal(Error("Must have a valid age", "Must have a name"), error,
+                            new ErrorEqualityComparer());
                     });
             ;
         }
@@ -77,10 +91,8 @@ namespace Eru.Tests
                     (p => p.Age >= 18, "Must have a valid age"),
                     (p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
                 )
-                .Match(_ => Fail(), error =>
-                {
-                    Assert.Equal(Error("Must have a valid age"), error, new ErrorEqualityComparer());
-                });
+                .Match(_ => Fail(),
+                    error => { Equal(Error("Must have a valid age"), error, new ErrorEqualityComparer()); });
             ;
         }
 
@@ -98,10 +110,12 @@ namespace Eru.Tests
             person
                 .Check(p => p.Age >= 18, "Must have a valid age")
                 .Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                .Match(_ => Fail(), error =>
-                {
-                    Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
-                });
+                .Match(_ => Fail(),
+                    error =>
+                    {
+                        Equal(Error("Must have a valid age", "Must have a name"), error,
+                            new ErrorEqualityComparer());
+                    });
             ;
         }
 
@@ -116,36 +130,16 @@ namespace Eru.Tests
             };
 
             var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
-                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                         select y;
+                from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                select y;
 
 
-            result.Match(_ => Fail(), error =>
-            {
-                Assert.Equal(Error("Must have a valid age", "Must have a name"), error, new ErrorEqualityComparer());
-            });
-            ;
-        }
-
-        [Property(DisplayName =
-            "Check will execute valid computations using LINQ", Verbose = true)]
-        public void Test8(int ageToAdd)
-        {
-            var person = new Person
-            {
-                Age = 19,
-                Name = "John"
-            };
-
-            var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
-                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                         select y.Age + ageToAdd;
-
-
-            result.Match(p =>
-            {
-                Assert.Equal(19 + ageToAdd, p);
-            }, error => Fail());
+            result.Match(_ => Fail(),
+                error =>
+                {
+                    Equal(Error("Must have a valid age", "Must have a name"), error,
+                        new ErrorEqualityComparer());
+                });
             ;
         }
     }

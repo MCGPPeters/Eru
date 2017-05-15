@@ -1,8 +1,8 @@
-﻿namespace Eru
-{
-    using System;
-    using System.Linq;
+﻿using System;
+using System.Linq;
 
+namespace Eru
+{
     public delegate (T parsedCharacter, char[] remainder)[] Parser<T>(char[] input);
 
     public static class Parser
@@ -13,7 +13,7 @@
 
         public static Parser<TResult> Return<TResult>(TResult result) =>
             input =>
-                new[] { (result, input) };
+                new[] {(result, input)};
 
         public static Parser<char> Item() =>
             input => input.Any()
@@ -23,30 +23,25 @@
         public static (T parsedToken, char[] remainder)[] Parse<T>(this Parser<T> parser, char[] input) =>
             parser(input);
 
-        public static (T parsedToken, char[] remainder)[] Parse<T>(this Parser<T> parser, string input)
-        {
-            return string.IsNullOrWhiteSpace(input)
-                ? new(T, char[])[0]
-                : parser.Parse(input.ToCharArray());
-        }
+        public static (T parsedToken, char[] remainder)[] Parse<T>(this Parser<T> parser, string input) => string
+            .IsNullOrWhiteSpace(input)
+            ? new(T, char[])[0]
+            : parser.Parse(input.ToCharArray());
 
         /// <summary>
-        ///     Try this parser. If it fails, try the appended one
+        ///     Try this parser. Where it fails, try the appended one
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="nextParser">The next parser.</param>
         /// <returns></returns>
-        public static Parser<T> Otherwise<T>(this Parser<T> parser, Parser<T> nextParser)
+        public static Parser<T> Otherwise<T>(this Parser<T> parser, Parser<T> nextParser) => input =>
         {
-            return input =>
-            {
-                var parsedInput = parser(input);
+            var parsedInput = parser(input);
 
-                return parsedInput.Any()
-                    ? parsedInput
-                    : nextParser(input);
-            };
-        }
+            return parsedInput.Any()
+                ? parsedInput
+                : nextParser(input);
+        };
 
         /// <summary>
         ///     First of all, the parser is applied to the input string,
@@ -61,20 +56,17 @@
         /// <param name="parser"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static Parser<TU> Bind<T, TU>(this Parser<T> parser, Func<T, Parser<TU>> func)
+        public static Parser<TU> Bind<T, TU>(this Parser<T> parser, Func<T, Parser<TU>> func) => input =>
         {
-            return input =>
-            {
-                var parsedInput = parser(input);
+            var parsedInput = parser(input);
 
-                var parsers = parsedInput
-                    .Select(tuple => func(tuple.parsedCharacter)(tuple.remainder)).ToArray();
+            var parsers = parsedInput
+                .Select(tuple => func(tuple.parsedCharacter)(tuple.remainder)).ToArray();
 
-                return parsers.Any()
-                    ? parsers.SelectMany(tuples => tuples).ToArray()
-                    : new(TU, char[])[0];
-            };
-        }
+            return parsers.Any()
+                ? parsers.SelectMany(tuples => tuples).ToArray()
+                : new(TU, char[])[0];
+        };
 
         public static Parser<char> Where(Func<char, bool> predicate) =>
             Item().Bind(c => predicate(c)

@@ -1,19 +1,26 @@
-﻿namespace Eru
-{
-    using System;
+﻿using System;
 
+namespace Eru
+{
     public static partial class _
     {
         public static TResult Using<TDisposable, TResult>(TDisposable disposable, Func<TDisposable, TResult> function)
             where TDisposable : IDisposable
         {
-            using (disposable) return function(disposable);
+            using (disposable)
+            {
+                return function(disposable);
+            }
         }
 
-        public static TResult Use<TDisposable, TResult>(this TDisposable disposable, Func<TDisposable, TResult> function)
+        public static TResult Use<TDisposable, TResult>(this TDisposable disposable,
+            Func<TDisposable, TResult> function)
             where TDisposable : IDisposable
         {
-            using (disposable) return function(disposable);
+            using (disposable)
+            {
+                return function(disposable);
+            }
         }
     }
 }
