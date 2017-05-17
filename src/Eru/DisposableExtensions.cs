@@ -22,5 +22,9 @@ namespace Eru
                 return function(disposable);
             }
         }
+
+        public static Unit Use<TDisposable, TResult>(this TDisposable disposable,
+            Action<TDisposable> action)
+            where TDisposable : IDisposable => Use(disposable, action.ToFunction());
     }
 }
