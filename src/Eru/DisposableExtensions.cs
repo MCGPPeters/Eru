@@ -23,7 +23,7 @@ namespace Eru
             }
         }
 
-        public static Unit Use<TDisposable, TResult>(this TDisposable disposable,
+        public static Unit Use<TDisposable>(this TDisposable disposable,
             Action<TDisposable> action)
             where TDisposable : IDisposable => Use(disposable, action.ToFunction());
     }
