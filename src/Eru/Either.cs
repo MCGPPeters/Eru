@@ -94,14 +94,14 @@ namespace Eru
         ///     Where a alternative is represented, it will return that alternative as a singleton list.
         ///     Otherwise it will return the empty list
         /// </summary>
-        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="T"></typeparam>
         /// <typeparam name="TOtherwise"></typeparam>
         /// <param name="either"></param>
         /// <returns></returns>
-        public static IEnumerable<TOtherwise> Otherwise<TValue, TOtherwise>(
-            this Either<TValue, TOtherwise> either)
+        public static IEnumerable<TOtherwise> Otherwise<T, TOtherwise>(
+            this Either<T, TOtherwise> either)
         {
-            if (either is Either<TValue, TOtherwise>.Otherwise a) yield return a.Value;
+            if (either is Either<T, TOtherwise>.Otherwise a) yield return a.Value;
         }
 
 
@@ -110,6 +110,13 @@ namespace Eru
             Func<TOtherwise, TResult> fallback)
         {
             if (either is Either<T, TOtherwise>.Otherwise f) yield return fallback(f.Value);
+        }
+
+        public static IEnumerable<TResult> Otherwise<T, TOtherwise, TResult>(
+            this T @this,
+            Func<TOtherwise, TResult> fallback)
+        {
+            if (@this.AsEither<T, TOtherwise > () is Either<T, TOtherwise>.Otherwise f) yield return fallback(f.Value);
         }
 
         public static Either<TResult, TOtherwise> Apply<T, TOtherwise, TResult>(
