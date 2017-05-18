@@ -81,15 +81,11 @@ namespace Eru
 
         public static Task Otherwise
             (this Task task, Action<Exception> fallback)
-            => task.ContinueWith(async t =>
+            => task.ContinueWith(t =>
             {
                 if (t.Status == TaskStatus.Faulted)
                 {
-                    fallback(t.Exception);
-                }
-                else
-                {
-                    await t;
+                    fallback(t.Exception.InnerException);
                 }
             });
 
@@ -115,15 +111,15 @@ namespace Eru
         {
             if (delaysBetweenRetries.Length == 0)
             {
-                throw new NullReferenceException();
+                
                 await task;
             }
             else
             {
-                await task.Otherwise(() =>
+                await task.Otherwise(async () =>
                 {
                     Task.Delay(delaysBetweenRetries.First().Milliseconds).Wait();
-                    return Retry(task, delaysBetweenRetries.Skip(1).ToArray());
+                    await Retry(task, delaysBetweenRetries.Skip(1).ToArray());
                 });
             }
         }

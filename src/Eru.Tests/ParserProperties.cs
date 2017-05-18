@@ -27,10 +27,7 @@ namespace Eru.Tests
 
     public class ParserProperties
     {
-        public ParserProperties()
-        {
-            Arb.Register<Generators>();
-        }
+        public ParserProperties() => Arb.Register<Generators>();
 
         [Property(Verbose = true,
             DisplayName =
