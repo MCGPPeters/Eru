@@ -85,6 +85,6 @@ namespace Eru.Tests
         public async Task Property7() => await new SqlConnection()
                 .OpenAsync()
                 .Retry(TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(20))
-                .Otherwise(exception => IsType(typeof(InvalidOperationException), exception));
+                .Otherwise(exception => IsType(typeof(InvalidOperationException), exception.InnerException));
     }
 }
