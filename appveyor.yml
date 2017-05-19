@@ -1,0 +1,27 @@
+version: 2.0.{build}
+image: Visual Studio 2017
+configuration: Release
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
+environment:
+  NUGETAPIKEY:
+    secure: VKjdo0FDOKVVrhJ4zAZ6FTaRcN34YdVbaSloJP+SkJzvhq8BEERYdE/wRt1JV2I6
+build_script:
+- ps: .\build.ps1
+test: off
+deploy: off
+notifications:
+- provider: Webhook
+  url: https://webhooks.gitter.im/e/c1c17a0d0debf3e29176
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: false
+- provider: Webhook
+  url: https://zapier.com/hooks/catch/2b56pn/
+  on_build_success: false
+  on_build_failure: false
+  on_build_status_changed: false
