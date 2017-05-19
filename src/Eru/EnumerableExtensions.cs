@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Eru
 {
-    public static class Enumerable
+    public static class EnumerableExtensions
     {
         public static IEnumerable<T> Return<T>(params T[] items) => items.ToImmutableList();
 
