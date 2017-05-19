@@ -65,18 +65,20 @@ namespace Eru.Tests
 
         [Property(Verbose = true, DisplayName =
             "Retries equal the number of delays")]
-        public void Property6(PositiveInt numberOfCalls)
+        public async void Property6(PositiveInt numberOfCalls)
         {
             var numberOfTries = 0;
-            Task
+            var delaysBetweenRetries = Enumerable.Repeat(TimeSpan.FromMilliseconds(1), numberOfCalls.Get).ToArray();
+            await Task
                 .Run(() =>
                 {
-                    if (numberOfCalls.Get == numberOfTries) return;
                     numberOfTries++;
-                    throw new Exception("foo");
+                    if (numberOfCalls.Get == numberOfTries) return;
+                    
+                   
                 })
-                .Retry(Enumerable.Repeat(TimeSpan.FromMilliseconds(1), numberOfCalls.Get).ToArray())
-                .Otherwise(() => Task.Run(() => Equal(numberOfCalls.Get - 1, numberOfTries))).Wait();
+                .Retry(delaysBetweenRetries)
+                .Otherwise(exception => Equal(numberOfCalls.Get, numberOfTries));
         }
 
         [Fact(DisplayName =
