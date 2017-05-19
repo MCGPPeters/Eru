@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FsCheck;
 using FsCheck.Xunit;
@@ -63,23 +64,21 @@ namespace Eru.Tests
                     : throw new Exception())
                 .Match(i => Succeed(), exception => Fail());
 
-        [Property(Verbose = true, DisplayName =
-            "Retries equal the number of delays")]
-        public async void Property6(PositiveInt numberOfCalls)
-        {
-            var numberOfTries = 0;
-            var delaysBetweenRetries = Enumerable.Repeat(TimeSpan.FromMilliseconds(1), numberOfCalls.Get).ToArray();
-            await Task
-                .Run(() =>
-                {
-                    numberOfTries++;
-                    if (numberOfCalls.Get == numberOfTries) return;
-                    
-                   
-                })
-                .Retry(delaysBetweenRetries)
-                .Otherwise(exception => Equal(numberOfCalls.Get, numberOfTries));
-        }
+        //[Property(Verbose = true, DisplayName =
+        //    "Retries equal the number of delays")]
+        //public void Property6(PositiveInt numberOfCalls)
+        //{
+        //    numberOfTries = 1;
+        //    Task
+        //        .Run(() =>
+        //        {
+        //            if (numberOfCalls.Get + 100 == numberOfTries) return;
+        //            Interlocked.Increment(ref numberOfTries);
+        //            throw new Exception("foo");
+        //        })
+        //        .Retry(Enumerable.Repeat(TimeSpan.FromMilliseconds(1), numberOfCalls.Get).ToArray())
+        //        .Otherwise(exception => Equal(numberOfCalls.Get, numberOfTries)).Wait();
+        //}
 
         [Fact(DisplayName =
             "Retry can run asynchrounously")]
