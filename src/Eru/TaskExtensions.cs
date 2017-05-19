@@ -73,21 +73,21 @@ namespace Eru
         /// <param name="fallback"></param>
         /// <returns></returns>
         public static Task<T> Otherwise<T>
-            (this Task<T> task, Func<Exception, T> fallback)
+            (this Task<T> task, Func<AggregateException, T> fallback)
             => task.ContinueWith(t =>
                 t.Status == TaskStatus.Faulted
                     ? fallback(t.Exception)
                     : t.Result);
 
-        public static Task Otherwise
-            (this Task task, Action<Exception> fallback)
-            => task.ContinueWith(t =>
-            {
-                if (t.Status == TaskStatus.Faulted)
-                {
-                    fallback(t.Exception.InnerException);
-                }
-            });
+        public static Task<Unit> Otherwise
+            (this Task task, Action<AggregateException> fallback)
+            => task.ReturnUnit().Otherwise(fallback.ToFunction());
+
+        public static async Task<Unit> ReturnUnit(this Task t)
+        {
+            await t;
+            return Unit;
+        }
 
 
         /// <summary>
@@ -106,22 +106,13 @@ namespace Eru
                     from t in Retry(function, delaysBetweenRetries.Skip(1).ToArray())
                     select t);
 
-        public static async Task Retry
-            (this Task task, params TimeSpan[] delaysBetweenRetries)
-        {
-            if (delaysBetweenRetries.Length == 0)
-            {
-                
-                await task;
-            }
-            else
-            {
-                await task.Otherwise(async () =>
-                {
-                    Task.Delay(delaysBetweenRetries.First().Milliseconds).Wait();
-                    await Retry(task, delaysBetweenRetries.Skip(1).ToArray());
-                });
-            }
-        }
+        public static Task<T> Retry<T>
+            (this Task<T> task, params TimeSpan[] delaysBetweenRetries)
+            => Retry(() => task, delaysBetweenRetries);
+
+        public static Task<Unit> Retry
+            (this Task task, params TimeSpan[] delaysBetweenRetries) =>
+             Retry(task.ReturnUnit, delaysBetweenRetries);
+
     }
 }
