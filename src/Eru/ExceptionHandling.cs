@@ -33,7 +33,7 @@ namespace Eru
         public static Either<T, TOtherwise> MapException<T, TOtherwise>(
             this Either<T, Exception> either, Func<Exception, TOtherwise> function) =>
             either.Match(AsEither<T, TOtherwise>, alternative =>
-                AsEither<T, TOtherwise>(function(alternative)));
+                AsEither<T, TOtherwise>(function(alternative)))();
 
         //Either<TResult, Func<Func<bool>, Either<TResult, Exception>>>
         public static Either<TResult, Exception> Retry<T, TResult>(this T @this,

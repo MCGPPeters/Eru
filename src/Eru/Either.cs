@@ -14,7 +14,7 @@ namespace Eru
         public static Either<TResult, TOtherwise> Bind<T, TOtherwise, TResult>(
             this Either<T, TOtherwise> either,
             Func<T, Either<TResult, TOtherwise>> function) => either.Match(function, alternatives =>
-            new Either<TResult, TOtherwise>.Otherwise(alternatives));
+            new Either<TResult, TOtherwise>.Otherwise(alternatives))();
 
         public static Either<TResult, TOtherwise> Then<T, TOtherwise, TResult>(
             this Either<T, TOtherwise> either,
@@ -32,7 +32,7 @@ namespace Eru
         public static Either<T, TOtherwiseResult> MapOtherwise<T, TOtherwise, TOtherwiseResult>(
             this Either<T, TOtherwise> either, Func<TOtherwise, TOtherwiseResult> function) => either.Match(
             AsEither<T, TOtherwiseResult>, alternative =>
-                AsEither<T, TOtherwiseResult>(function(alternative)));
+                AsEither<T, TOtherwiseResult>(function(alternative)))();
 
         public static Either<T, TOtherwise> Where<T, TOtherwise>(this Either<T, TOtherwise> either,
             Predicate<T> predicate, TOtherwise alternative) => either
@@ -60,18 +60,18 @@ namespace Eru
 
         public static Unit Match<T, TOtherwise>(this Either<T, TOtherwise> either,
             Action<T> @do,
-            Action<TOtherwise> otherwise) => Match(either, @do.ToFunction(), otherwise.ToFunction());
+            Action<TOtherwise> otherwise) => Match(either, @do.ToFunction(), otherwise.ToFunction())();
 
-        public static TResult Match<T, TOtherwise, TResult>(this Either<T, TOtherwise> either,
+        public static Func<TResult> Match<T, TOtherwise, TResult>(this Either<T, TOtherwise> either,
             Func<T, TResult> @do,
             Func<TOtherwise, TResult> otherwise)
         {
             switch (either)
             {
                 case Either<T, TOtherwise>.Just a:
-                    return @do(a.Value);
+                    return () => @do(a.Value);
                 case Either<T, TOtherwise>.Otherwise other:
-                    return otherwise(other.Value);
+                    return () => otherwise(other.Value);
                 default:
                     throw new InvalidOperationException();
             }
@@ -116,7 +116,7 @@ namespace Eru
             this T @this,
             Func<TOtherwise, TResult> fallback)
         {
-            if (@this.AsEither<T, TOtherwise > () is Either<T, TOtherwise>.Otherwise f) yield return fallback(f.Value);
+            if (@this.AsEither<T, TOtherwise>() is Either<T, TOtherwise>.Otherwise f) yield return fallback(f.Value);
         }
 
         public static Either<TResult, TOtherwise> Apply<T, TOtherwise, TResult>(
@@ -126,11 +126,11 @@ namespace Eru
                 either
                     .Match(value =>
                             AsEither<TResult, TOtherwise>(func(value)),
-                        AsEither<TResult, TOtherwise>), otherwise =>
+                        AsEither<TResult, TOtherwise>)(), otherwise =>
                 either
                     .Match(_ =>
                         AsEither<TResult, TOtherwise>(otherwise), alternative =>
-                            AsEither<TResult, TOtherwise>(otherwise.Append(alternative))));
+                            AsEither<TResult, TOtherwise>(otherwise.Append(alternative)))())();
 
         /// <summary>
         ///     Alias of map for linq syntax support
@@ -150,7 +150,7 @@ namespace Eru
             bind(value)
                 .Match(intermediateResult =>
                         AsEither<TResult, TOtherwise>(project(value, intermediateResult)),
-                    AsEither<TResult, TOtherwise>), AsEither<TResult, TOtherwise>);
+                    AsEither<TResult, TOtherwise>)(), AsEither<TResult, TOtherwise>)();
     }
 
 
