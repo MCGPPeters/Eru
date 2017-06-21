@@ -29,7 +29,7 @@ namespace Eru
             Func<T, TResult> function) => either.Bind(alternative =>
             AsEither<TResult, TOtherwise>(function(alternative)));
 
-        public static Either<T, TOtherwiseResult> MapOtherwise<T, TOtherwise, TOtherwiseResult>(
+        public static Either<T, TOtherwiseResult> OtherwiseMap<T, TOtherwise, TOtherwiseResult>(
             this Either<T, TOtherwise> either, Func<TOtherwise, TOtherwiseResult> function) => either.Match(
             AsEither<T, TOtherwiseResult>, alternative =>
                 AsEither<T, TOtherwiseResult>(function(alternative)))();
@@ -48,7 +48,7 @@ namespace Eru
 
         public static Either<T, Nothing> Where<T>(this Either<T, Nothing> either,
             Predicate<T> predicate) => either
-            .MapOtherwise(otherwise => Nothing)
+            .OtherwiseMap(otherwise => Nothing)
             .Bind(value =>
                 predicate(value)
                     ? AsEither<T, Nothing>(value)

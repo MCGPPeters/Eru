@@ -22,7 +22,7 @@ namespace Eru
         public static implicit operator Error(string[] messages) => messages.Select(m => new Error(m))
             .Aggregate((current, next) => current.Append(next));
 
-        public static implicit operator string[](Error error) => error.Messages;
+        public static implicit operator string[] (Error error) => error.Messages;
 
         public override Error Append(Error t) => new Error(t);
     }
@@ -144,7 +144,8 @@ namespace Eru
             Func<T, T> identity = value => value;
 
             var validation = identity
-                .AsEither<Func<T, T>, Error>().MapOtherwise(_ => error);
+                .AsEither<Func<T, T>, Error>()
+                .OtherwiseMap(_ => error);
 
             return either.Apply(validation);
         }
