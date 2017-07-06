@@ -73,7 +73,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="ExceptionHandlingScenarios.cs" />
     <Compile Include="ParserProperties.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
