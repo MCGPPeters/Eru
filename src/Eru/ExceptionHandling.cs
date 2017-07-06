@@ -45,6 +45,6 @@ namespace Eru
                     {
                         Task.Delay(delaysBetweenRetries.First()).Wait();
                         return Retry(@this, function, delaysBetweenRetries.Skip(1).ToArray());
-                    }).First();
+                    }).FirstOrDefault();
     }
 }

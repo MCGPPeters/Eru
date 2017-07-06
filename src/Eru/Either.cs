@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Eru
 {
     public static partial class _
     {
         public static Either<T, TOtherwise> AsEither<T, TOtherwise>(this T value) =>
-            new Either<T, TOtherwise>.Just(value);
+            value;
 
-        public static Either<T, TOtherwise> AsEither<T, TOtherwise>(
-            this TOtherwise alternative) => new Either<T, TOtherwise>.Otherwise(alternative);
+        public static Either<T, TOtherwise> AsEither<T, TOtherwise>(this TOtherwise
+           alternative) => alternative;
 
         public static Either<TResult, TOtherwise> Bind<T, TOtherwise, TResult>(
             this Either<T, TOtherwise> either,
-            Func<T, Either<TResult, TOtherwise>> function) => either.Match(function, alternatives =>
-            new Either<TResult, TOtherwise>.Otherwise(alternatives))();
+            Func<T, Either<TResult, TOtherwise>> function) => either.Match<Either<TResult, TOtherwise>>(function, alternatives =>
+            alternatives)();
 
         public static Either<TResult, TOtherwise> Then<T, TOtherwise, TResult>(
             this Either<T, TOtherwise> either,
@@ -58,37 +59,25 @@ namespace Eru
         public static Either<T, TOtherwise> Where<T, TOtherwise>(this T value, Predicate<T> predicate,
             TOtherwise alternative) => AsEither<T, TOtherwise>(value).Where(predicate, alternative);
 
-        public static Unit Match<T, TOtherwise>(this Either<T, TOtherwise> either,
-            Action<T> @do,
-            Action<TOtherwise> otherwise) => Match(either, @do.ToFunction(), otherwise.ToFunction())();
+        //public static Unit Match<T, TOtherwise>(this Either<T, TOtherwise> either,
+        //    Action<T> @do,
+        //    Action<TOtherwise> otherwise) => either.Match(@do.ToFunction(), otherwise.ToFunction())();
 
-        public static Func<TResult> Match<T, TOtherwise, TResult>(this Either<T, TOtherwise> either,
-            Func<T, TResult> @do,
-            Func<TOtherwise, TResult> otherwise)
-        {
-            switch (either)
-            {
-                case Either<T, TOtherwise>.Just a:
-                    return () => @do(a.Value);
-                case Either<T, TOtherwise>.Otherwise other:
-                    return () => otherwise(other.Value);
-                default:
-                    throw new InvalidOperationException();
-            }
-        }
-
-        /// <summary>
-        ///     Where a do is represented, that do will be returned as a singleton list
-        ///     Otherwise it will return the empty list
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TOtherwise"></typeparam>
-        /// <param name="either"></param>
-        /// <returns></returns>
-        public static IEnumerable<T> Value<T, TOtherwise>(this Either<T, TOtherwise> either)
-        {
-            if (either is Either<T, TOtherwise>.Just a) yield return a.Value;
-        }
+        //public static Func<TResult> Match<T, TOtherwise, TResult>(this Either<T, TOtherwise> either,
+        //    Func<T, TResult> @do,
+        //    Func<TOtherwise, TResult> otherwise)
+        //{
+        //    if (either is T t) return () => @do(t);
+        //    switch (either)
+        //    {
+        //        case T a:
+        //            return () => @do(a.Value);
+        //        case Either<T, TOtherwise>.Otherwise other:
+        //            return () => otherwise(other.Value);
+        //        default:
+        //            throw new InvalidOperationException();
+        //    }
+        //}
 
         /// <summary>
         ///     Where a alternative is represented, it will return that alternative as a singleton list.
@@ -99,25 +88,26 @@ namespace Eru
         /// <param name="either"></param>
         /// <returns></returns>
         public static IEnumerable<TOtherwise> Otherwise<T, TOtherwise>(
-            this Either<T, TOtherwise> either)
-        {
-            if (either is Either<T, TOtherwise>.Otherwise a) yield return a.Value;
-        }
+            this Either<T, TOtherwise> either) =>
+                either.Match(
+                    t => Enumerable.Empty<TOtherwise>(),
+                    otherwise => new[] { otherwise })();
 
 
         public static IEnumerable<TResult> Otherwise<T, TOtherwise, TResult>(
             this Either<T, TOtherwise> either,
-            Func<TOtherwise, TResult> fallback)
-        {
-            if (either is Either<T, TOtherwise>.Otherwise f) yield return fallback(f.Value);
-        }
+            Func<TOtherwise, TResult> fallback) =>
+            either.Match(
+                t => Enumerable.Empty<TResult>(),
+                otherwise => new[] { fallback(otherwise) })();
+
 
         public static IEnumerable<TResult> Otherwise<T, TOtherwise, TResult>(
             this T @this,
-            Func<TOtherwise, TResult> fallback)
-        {
-            if (@this.AsEither<T, TOtherwise>() is Either<T, TOtherwise>.Otherwise f) yield return fallback(f.Value);
-        }
+            Func<TOtherwise, TResult> fallback) =>
+            @this.AsEither<T, TOtherwise>().Match(
+                t => Enumerable.Empty<TResult>(),
+                otherwise => new[] { fallback(otherwise) })();
 
         public static Either<TResult, TOtherwise> Apply<T, TOtherwise, TResult>(
             this Either<T, TOtherwise> either, Either<Func<T, TResult>, TOtherwise> function)
@@ -154,20 +144,47 @@ namespace Eru
     }
 
 
-    public abstract class Either<T, TOtherwise>
+    public struct Either<T, TOtherwise>
     {
-        public sealed class Just : Either<T, TOtherwise>
-        {
-            public Just(T value) => Value = value;
+        private TOtherwise Otherwise { get; }
+        private T Just { get; }
 
-            public T Value { get; }
+        private Either(T just)
+        {
+            Just = just;
+            Otherwise = default(TOtherwise);
         }
 
-        public sealed class Otherwise : Either<T, TOtherwise>
+        private Either(TOtherwise otherwise)
         {
-            public Otherwise(TOtherwise alternative) => Value = alternative;
-
-            public TOtherwise Value { get; }
+            Otherwise = otherwise;
+            Just = default(T);
         }
+
+        public static implicit operator Either<T, TOtherwise>(T left) => new Either<T, TOtherwise>(left);
+        public static implicit operator Either<T, TOtherwise>(TOtherwise right) => new Either<T, TOtherwise>(right);
+
+        public Func<TResult> Match<TResult>(Func<T, TResult> @do, Func<TOtherwise, TResult> otherwise)
+        {
+            if (Just != null)
+            {
+                var @thisJust = Just;
+                return () => @do(@thisJust);
+
+            }
+
+            if (Otherwise != null)
+            {
+                var @thisOtherwise = Otherwise;
+                return () => otherwise(@thisOtherwise);
+            }
+
+            throw new InvalidOperationException();
+
+        }
+
+        public void Match(Action<T> @do, Action<TOtherwise> otherwise) =>
+            Match(@do.ToFunction(), otherwise.ToFunction());
+
     }
 }
