@@ -59,26 +59,6 @@ namespace Eru
         public static Either<T, TOtherwise> Where<T, TOtherwise>(this T value, Predicate<T> predicate,
             TOtherwise alternative) => AsEither<T, TOtherwise>(value).Where(predicate, alternative);
 
-        //public static Unit Match<T, TOtherwise>(this Either<T, TOtherwise> either,
-        //    Action<T> @do,
-        //    Action<TOtherwise> otherwise) => either.Match(@do.ToFunction(), otherwise.ToFunction())();
-
-        //public static Func<TResult> Match<T, TOtherwise, TResult>(this Either<T, TOtherwise> either,
-        //    Func<T, TResult> @do,
-        //    Func<TOtherwise, TResult> otherwise)
-        //{
-        //    if (either is T t) return () => @do(t);
-        //    switch (either)
-        //    {
-        //        case T a:
-        //            return () => @do(a.Value);
-        //        case Either<T, TOtherwise>.Otherwise other:
-        //            return () => otherwise(other.Value);
-        //        default:
-        //            throw new InvalidOperationException();
-        //    }
-        //}
-
         /// <summary>
         ///     Where a alternative is represented, it will return that alternative as a singleton list.
         ///     Otherwise it will return the empty list
