@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 
 namespace Eru
 {
@@ -8,5 +10,12 @@ namespace Eru
         public static IEnumerable<T> Return<T>(params T[] items) => items.ToImmutableList();
 
         public static IEnumerable<T> AsList<T>(this T item) => Return(item);
+
+        public static async Task<TAccumulate> Aggregate<T, TAccumulate>(this IEnumerable<T> source, TAccumulate seed, Func<TAccumulate, T, Task<TAccumulate>> func)
+        {
+            var result = seed;
+            foreach (var element in source) result = await func(result, element);
+            return result;
+        }
     }
 }
