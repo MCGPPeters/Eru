@@ -21,8 +21,8 @@ namespace Eru.Tests
             };
 
             var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
-                from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                select y.Age + ageToAdd;
+                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                         select y.Age + ageToAdd;
 
 
             result.Match(p => { Equal(19 + ageToAdd, p); }, error => Fail());
@@ -130,8 +130,8 @@ namespace Eru.Tests
             };
 
             var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
-                from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                select y;
+                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                         select y;
 
 
             result.Match(_ => Fail(),

@@ -126,18 +126,25 @@ namespace Eru
 
     public struct Either<T, TOtherwise>
     {
+        private bool _isJust;
+        private bool _isOtherwise;
+
         private TOtherwise Otherwise { get; }
         private T Just { get; }
 
         private Either(T just)
         {
             Just = just;
+            _isJust = true;
+            _isOtherwise = false;
             Otherwise = default(TOtherwise);
         }
 
         private Either(TOtherwise otherwise)
         {
             Otherwise = otherwise;
+            _isJust = false;
+            _isOtherwise = true;
             Just = default(T);
         }
 
@@ -146,25 +153,21 @@ namespace Eru
 
         public Func<TResult> Match<TResult>(Func<T, TResult> @do, Func<TOtherwise, TResult> otherwise)
         {
-            if (Just != null)
+            if (_isJust)
             {
                 var @thisJust = Just;
                 return () => @do(@thisJust);
 
             }
 
-            if (Otherwise != null)
-            {
-                var @thisOtherwise = Otherwise;
-                return () => otherwise(@thisOtherwise);
-            }
+            if (!_isOtherwise) throw new InvalidOperationException();
 
-            throw new InvalidOperationException();
-
+            var @thisOtherwise = Otherwise;
+            return () => otherwise(@thisOtherwise);
         }
 
         public void Match(Action<T> @do, Action<TOtherwise> otherwise) =>
-            Match(@do.ToFunction(), otherwise.ToFunction());
+            Match(@do.ToFunction(), otherwise.ToFunction())();
 
     }
 }

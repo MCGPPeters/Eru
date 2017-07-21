@@ -48,8 +48,8 @@ namespace Eru.Tests
 
         [Property(Verbose = true, DisplayName =
             "Retry should return the expected failure when the condition does not hold")]
-        public void Property4(PositiveInt dividend) => dividend
-                .Retry(x => x.Get / 0, TimeSpan.FromMilliseconds(20))
+        public void Property4(int dividend) => dividend
+                .Retry(x => x / 0, TimeSpan.FromMilliseconds(1))
                 .Match(
                     _ => Fail(),
                     exception => IsType(typeof(DivideByZeroException), exception));
