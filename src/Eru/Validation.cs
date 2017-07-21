@@ -175,7 +175,7 @@ namespace Eru
 
     public class ErrorEqualityComparer : EqualityComparer<Error>
     {
-        public override bool Equals(Error x, Error y) => x.Messages.SequenceEqual(x.Messages);
+        public override bool Equals(Error x, Error y) => x.Messages.SequenceEqual(y.Messages);
 
         public override int GetHashCode(Error obj) => obj.GetHashCode();
     }
