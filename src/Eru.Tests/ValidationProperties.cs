@@ -108,38 +108,13 @@ namespace Eru.Tests
 
 
             person
-                .Check(p => p.Age >= 18, "Must have a valid age")
-                .Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                .Check((p => p.Age >= 18, "Must have a valid age"), (p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name"))
                 .Match(_ => Fail(),
                     error =>
                     {
                         Equal(Error("Must have a valid age", "Must have a name"), error,
                             new ErrorEqualityComparer());
                     });
-            ;
-        }
-
-        [Fact(DisplayName =
-            "Check will aggregate all failed validations using LINQ")]
-        public void Test7()
-        {
-            var person = new Person
-            {
-                Age = 11,
-                Name = ""
-            };
-
-            var result = from x in person.Check(p => p.Age >= 18, "Must have a valid age")
-                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
-                         select y;
-
-
-            result.Match(_ => Fail(),
-                error =>
-                {
-                    Equal(Error("Must have a valid age", "Must have a name"), error,
-                        new ErrorEqualityComparer());
-                });
             ;
         }
     }

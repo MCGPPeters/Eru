@@ -90,7 +90,7 @@ namespace Eru
                 otherwise => new[] { fallback(otherwise) })();
 
         public static Either<TResult, TOtherwise> Apply<T, TOtherwise, TResult>(
-            this Either<T, TOtherwise> either, Either<Func<T, TResult>, TOtherwise> function)
+            this Either<Func<T, TResult>, TOtherwise> function, Either<T, TOtherwise> either)
             where TOtherwise : Monoid<TOtherwise> => function
             .Match(func =>
                 either
