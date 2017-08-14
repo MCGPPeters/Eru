@@ -14,6 +14,7 @@ namespace Eru
         public static async Task<TAccumulate> Aggregate<T, TAccumulate>(this IEnumerable<T> source, TAccumulate seed, Func<TAccumulate, T, Task<TAccumulate>> func)
         {
             var result = seed;
+            // ReSharper disable once LoopCanBeConvertedToQuery => Does not work here. Will be ambiguous invocation
             foreach (var element in source) result = await func(result, element);
             return result;
         }
