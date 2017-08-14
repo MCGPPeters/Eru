@@ -61,8 +61,8 @@ namespace Eru.Tests
             person
                 .Check
                 (
-                    (p => p.Age >= 18, "Must have a valid age"),
-                    (p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
+                    (p => p.Age >= 18, p1 => "Must have a valid age"),
+                    (p => !string.IsNullOrWhiteSpace(p.Name), p1 => "Must have a name")
                 )
                 .Match(
                     _ => Fail(),
@@ -108,11 +108,11 @@ namespace Eru.Tests
 
 
             person
-                .Check((p => p.Age >= 18, "Must have a valid age"), (p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name"))
+                .Check((p => p.Age >= 18, person1 => $"Must have a valid age. Actual age : {person1.Age}"), (p => !string.IsNullOrWhiteSpace(p.Name), person1 => "Must have a name"))
                 .Match(_ => Fail(),
                     error =>
                     {
-                        Equal(Error("Must have a valid age", "Must have a name"), error,
+                        Equal(Error("Must have a valid age. Actual age : 11", "Must have a name"), error,
                             new ErrorEqualityComparer());
                     });
             ;
