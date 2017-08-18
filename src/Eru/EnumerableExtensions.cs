@@ -41,13 +41,13 @@ namespace Eru
 
                 if (partition.Count == length)
                 {
-                    yield return partition.AsReadOnly();
+                    yield return new ReadOnlyCollection<T>(partition);
                     partition = new List<T>(length);
                 }
             }
 
             if (partition.Count > 0)
-                yield return partition.AsReadOnly();
+                yield return new ReadOnlyCollection<T>(partition);
         }
     }
 }
