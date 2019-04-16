@@ -19,25 +19,25 @@ namespace Eru
             }
         }
 
-        public static Either<TResult, Exception> Try<T, TResult>(this Either<T, Exception> either,
+        public static Either<TResult, Exception> Try<T, TResult>(this Either<T, Exception> eitherValue,
             Func<T, TResult> function) =>
-            either.Bind(v => Try(v, function));
+            eitherValue.Bind(v => Try(v, function));
 
         public static Either<Unit, Exception> Try<TValue>(this TValue value, Action<TValue> action)
             => Try(value, action.ToFunction());
 
-        public static Either<Unit, Exception> Try<TValue>(this Either<TValue, Exception> either,
+        public static Either<Unit, Exception> Try<TValue>(this Either<TValue, Exception> eitherValue,
             Action<TValue> action) =>
-            either.Map(action.ToFunction());
+            eitherValue.Map(action.ToFunction());
 
         public static Either<T, TOtherwise> MapException<T, TOtherwise>(
-            this Either<T, Exception> either, Func<Exception, TOtherwise> function) =>
-            either.Match(
+            this Either<T, Exception> eitherValue, Func<Exception, TOtherwise> function) =>
+            eitherValue.Match(
                 AsEither<T, TOtherwise>,
                 alternative =>
                     AsEither<T, TOtherwise>(function(alternative)))();
 
-        //Either<TResult, Func<Func<bool>, Either<TResult, Exception>>>
+        //EitherValue<TResult, Func<Func<bool>, EitherValue<TResult, Exception>>>
         public static Either<TResult, Exception> Retry<T, TResult>(this T @this,
             Func<T, TResult> function, params TimeSpan[] delaysBetweenRetries) =>
             delaysBetweenRetries.Length == 0

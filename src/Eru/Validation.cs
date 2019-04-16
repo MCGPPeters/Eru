@@ -41,7 +41,7 @@ namespace Eru
             params Func<T, Either<T, Error>>[] validations) => reduceValidations(validations)(value);
 
         /// <summary>
-        ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
+        ///     Validate and fail as soon as one validation fails and do not aggregate any error messages
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
@@ -63,7 +63,7 @@ namespace Eru
             .Check(validations);
 
         /// <summary>
-        ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
+        ///     Validate and fail as soon as one validation fails and do not aggregate any error messages
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
@@ -78,10 +78,10 @@ namespace Eru
         ///     Validate and aggregate all validation errors that may occur into 1 error
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="either"></param>
+        /// <param name="eitherValue"></param>
         /// <param name="validations"></param>
         /// <returns></returns>
-        public static Either<T, Error> Check<T>(this Either<T, Error> either,
+        public static Either<T, Error> Check<T>(this Either<T, Error> eitherValue,
             params (Predicate<T> rule, Func<T, Error> error)[] validations)
 
         {
@@ -90,15 +90,15 @@ namespace Eru
                     ? t.AsEither<T, Func<T, Error>>()
                     : validation.error.AsEither<T, Func<T, Error>>());
 
-            var e = either.Map<T, Error, Func<T, T>>(arg => arg1 => arg1);
+            var e = eitherValue.Map<T, Error, Func<T, T>>(arg => arg1 => arg1);
 
 
             Func<T, T> @do = v => v;
-            var f = s.Select(func => either.Bind(arg => e.Apply(func(arg).OtherwiseMap(errFunc => errFunc(arg)))));
+            var f = s.Select(func => eitherValue.Bind(arg => e.Apply(func(arg).OtherwiseMap(errFunc => errFunc(arg)))));
 
             return f.Aggregate(
                 (current, next) => current.Match(
-                    t => t,
+                    t => new EitherValue<T, Error>(t),
                     error => next.OtherwiseMap(error1 => new Error(error.Messages.Concat(error1.Messages).ToArray())))());
 
         }
@@ -107,11 +107,11 @@ namespace Eru
         ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="either"></param>
+        /// <param name="eitherValue"></param>
         /// <param name="validations"></param>
         /// <returns></returns>
-        public static Either<T, Error> CheckQuick<T>(this Either<T, Error> either,
-            params (Predicate<T> rule, Error error)[] validations) => either.Bind(
+        public static Either<T, Error> CheckQuick<T>(this Either<T, Error> eitherValue,
+            params (Predicate<T> rule, Error error)[] validations) => eitherValue.Bind(
             value =>
                 CheckQuick(
                     value,
@@ -133,19 +133,19 @@ namespace Eru
         public static Either<T, Error> Check<T>(this T value,
             Predicate<T> rule, Func<T, Error> error) => Check(value, (rule, error));
 
-        public static Either<T, Error> Check<T>(this Either<T, Error> either,
-            Predicate<T> rule, Func<T, Error> error) => Check(either, (rule, error));
+        public static Either<T, Error> Check<T>(this Either<T, Error> eitherValue,
+            Predicate<T> rule, Func<T, Error> error) => Check(eitherValue, (rule, error));
 
         /// <summary>
         ///     Validate and fail as soon as one validation fails and do not aggragate any error messages
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="either"></param>
+        /// <param name="eitherValue"></param>
         /// <param name="rule"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public static Either<T, Error> CheckQuick<T>(this Either<T, Error> either,
-            Predicate<T> rule, Error error) => CheckQuick(either, (rule, error));
+        public static Either<T, Error> CheckQuick<T>(this Either<T, Error> eitherValue,
+            Predicate<T> rule, Error error) => CheckQuick(eitherValue, (rule, error));
     }
 
     public class ErrorEqualityComparer : EqualityComparer<Error>
