@@ -17,7 +17,7 @@ namespace Eru
             => f(await task);
 
         public static Task<TResult> Map<T, TResult>
-            (this Task<T> task, Func<Exception, TResult> faulted, Func<T, TResult> completed)
+            (this Task<T> task, Func<AggregateException, TResult> faulted, Func<T, TResult> completed)
             => task.ContinueWith(
                 t =>
                     t.Status == TaskStatus.Faulted
