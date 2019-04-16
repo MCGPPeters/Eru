@@ -151,7 +151,7 @@ namespace Eru
             Just = just;
             _isJust = true;
             _isOtherwise = false;
-            Otherwise = default;
+            Otherwise = default(TOtherwise);
         }
 
         private Either(TOtherwise otherwise)
@@ -159,7 +159,7 @@ namespace Eru
             Otherwise = otherwise;
             _isJust = false;
             _isOtherwise = true;
-            Just = default;
+            Just = default(T);
         }
 
         public static implicit operator Either<T, TOtherwise>(T left) => new Either<T, TOtherwise>(left);
