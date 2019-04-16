@@ -10,8 +10,10 @@ namespace Eru.Tests
     {
         private static void Fail() => True(false);
 
-        [Property(DisplayName =
-            "Check will execute valid computations using LINQ", Verbose = true)]
+        [Property(
+            DisplayName =
+                "Check will execute valid computations using LINQ",
+            Verbose = true)]
         public void Test8(int ageToAdd)
         {
             var person = new Person
@@ -21,8 +23,8 @@ namespace Eru.Tests
             };
 
             var result = from x in person.Check(p => p.Age >= 18, _ => "Must have a valid age")
-                         from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), _ => "Must have a name")
-                         select y.Age + ageToAdd;
+                from y in x.Check(p => !string.IsNullOrWhiteSpace(p.Name), _ => "Must have a name")
+                select y.Age + ageToAdd;
 
 
             result.Match(p => { Equal(19 + ageToAdd, p); }, error => Fail());
@@ -30,8 +32,9 @@ namespace Eru.Tests
         }
 
 
-        [Fact(DisplayName =
-            "Check will only aggregate failed validations")]
+        [Fact(
+            DisplayName =
+                "Check will only aggregate failed validations")]
         public void Test3()
         {
             var person = new Person
@@ -43,13 +46,15 @@ namespace Eru.Tests
             person
                 .Check(p => p.Age >= 0, _ => "Must have a valid age")
                 .Check(p => !string.IsNullOrWhiteSpace(p.Name), _ => "Must have a name")
-                .Match(success => { },
+                .Match(
+                    success => { },
                     error => { Equal(Error("Must have a name"), error, new ErrorEqualityComparer()); });
             ;
         }
 
-        [Fact(DisplayName =
-            "Check will aggregate all failed validations")]
+        [Fact(
+            DisplayName =
+                "Check will aggregate all failed validations")]
         public void Test4()
         {
             var person = new Person
@@ -59,8 +64,7 @@ namespace Eru.Tests
             };
 
             person
-                .Check
-                (
+                .Check(
                     (p => p.Age >= 18, p1 => "Must have a valid age"),
                     (p => !string.IsNullOrWhiteSpace(p.Name), p1 => "Must have a name")
                 )
@@ -68,14 +72,17 @@ namespace Eru.Tests
                     _ => Fail(),
                     error =>
                     {
-                        Equal(Error("Must have a valid age", "Must have a name"), error,
+                        Equal(
+                            Error("Must have a valid age", "Must have a name"),
+                            error,
                             new ErrorEqualityComparer());
                     });
             ;
         }
 
-        [Fact(DisplayName =
-            "CheckQuick will only return the first error")]
+        [Fact(
+            DisplayName =
+                "CheckQuick will only return the first error")]
         public void Test5()
         {
             var person = new Person
@@ -86,18 +93,19 @@ namespace Eru.Tests
 
 
             person
-                .CheckQuick
-                (
+                .CheckQuick(
                     (p => p.Age >= 18, "Must have a valid age"),
                     (p => !string.IsNullOrWhiteSpace(p.Name), "Must have a name")
                 )
-                .Match(_ => Fail(),
+                .Match(
+                    _ => Fail(),
                     error => { Equal(Error("Must have a valid age"), error, new ErrorEqualityComparer()); });
             ;
         }
 
-        [Fact(DisplayName =
-            "Check will aggregate all failed validations")]
+        [Fact(
+            DisplayName =
+                "Check will aggregate all failed validations")]
         public void Test6()
         {
             var person = new Person
@@ -108,11 +116,16 @@ namespace Eru.Tests
 
 
             person
-                .Check((p => p.Age >= 18, person1 => $"Must have a valid age. Actual age : {person1.Age}"), (p => !string.IsNullOrWhiteSpace(p.Name), person1 => "Must have a name"))
-                .Match(_ => Fail(),
+                .Check(
+                    (p => p.Age >= 18, person1 => $"Must have a valid age. Actual age : {person1.Age}"),
+                    (p => !string.IsNullOrWhiteSpace(p.Name), person1 => "Must have a name"))
+                .Match(
+                    _ => Fail(),
                     error =>
                     {
-                        Equal(Error("Must have a valid age. Actual age : 11", "Must have a name"), error,
+                        Equal(
+                            Error("Must have a valid age. Actual age : 11", "Must have a name"),
+                            error,
                             new ErrorEqualityComparer());
                     });
             ;

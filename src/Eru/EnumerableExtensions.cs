@@ -21,7 +21,7 @@ namespace Eru
         }
 
         /// <summary>
-        /// Partition the sequence in parts of <paramref name="length"/>. The operation is O(1)
+        ///     Partition the sequence in parts of <paramref name="length" />. The operation is O(1)
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>

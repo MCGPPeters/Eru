@@ -36,9 +36,11 @@ namespace Eru
 
         public static Continuation<T, T> Where<T>(this Continuation<T, T> continuation,
             Predicate<T> predicate) =>
-            Bind(continuation, arg =>
-                predicate(arg)
-                    ? AsContinuation<T, T>(arg)
-                    : (func => arg));
+            Bind(
+                continuation,
+                arg =>
+                    predicate(arg)
+                        ? AsContinuation<T, T>(arg)
+                        : func => arg);
     }
 }

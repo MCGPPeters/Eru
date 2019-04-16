@@ -9,7 +9,7 @@ namespace Eru
     {
         public static Parser<T> Fail<T>() =>
             _ =>
-                new(T, char[])[0];
+                new (T, char[])[0];
 
         public static Parser<TResult> Return<TResult>(TResult result) =>
             input =>
@@ -25,7 +25,7 @@ namespace Eru
 
         public static (T parsedToken, char[] remainder)[] Parse<T>(this Parser<T> parser, string input) => string
             .IsNullOrWhiteSpace(input)
-            ? new(T, char[])[0]
+            ? new (T, char[])[0]
             : parser.Parse(input.ToCharArray());
 
         /// <summary>
@@ -65,13 +65,14 @@ namespace Eru
 
             return parsers.Any()
                 ? parsers.SelectMany(tuples => tuples).ToArray()
-                : new(TU, char[])[0];
+                : new (TU, char[])[0];
         };
 
         public static Parser<char> Where(Func<char, bool> predicate) =>
-            Item().Bind(c => predicate(c)
-                ? Return(c)
-                : Fail<char>());
+            Item().Bind(
+                c => predicate(c)
+                    ? Return(c)
+                    : Fail<char>());
 
         public static Parser<char> Digit() =>
             input =>

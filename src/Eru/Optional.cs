@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -11,7 +10,7 @@ namespace Eru
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            return obj is Optional<T> && Equals((Optional<T>)obj);
+            return obj is Optional<T> && Equals((Optional<T>) obj);
         }
 
         public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode(_value);
@@ -30,6 +29,7 @@ namespace Eru
         public static implicit operator Optional<T>(T value) => new Optional<T>(value);
 
         public static bool operator ==(Optional<T> @this, Optional<T> other) => @this.Equals(other);
+
         public static bool operator !=(Optional<T> @this, Optional<T> other) => !(@this == other);
     }
 }

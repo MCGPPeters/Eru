@@ -1,9 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Eru
 {
-    using System;
-    using System.Linq;
 
     public static partial class _
     {
@@ -32,8 +32,10 @@ namespace Eru
 
         public static Either<T, TOtherwise> MapException<T, TOtherwise>(
             this Either<T, Exception> either, Func<Exception, TOtherwise> function) =>
-            either.Match(AsEither<T, TOtherwise>, alternative =>
-                AsEither<T, TOtherwise>(function(alternative)))();
+            either.Match(
+                AsEither<T, TOtherwise>,
+                alternative =>
+                    AsEither<T, TOtherwise>(function(alternative)))();
 
         //Either<TResult, Func<Func<bool>, Either<TResult, Exception>>>
         public static Either<TResult, Exception> Retry<T, TResult>(this T @this,
@@ -41,10 +43,11 @@ namespace Eru
             delaysBetweenRetries.Length == 0
                 ? @this.Try(function)
                 : @this.Try(function)
-                    .Otherwise(_ =>
-                    {
-                        Task.Delay(delaysBetweenRetries.First()).Wait();
-                        return Retry(@this, function, delaysBetweenRetries.Skip(1).ToArray());
-                    }).FirstOrDefault();
+                    .Otherwise(
+                        _ =>
+                        {
+                            Task.Delay(delaysBetweenRetries.First()).Wait();
+                            return Retry(@this, function, delaysBetweenRetries.Skip(1).ToArray());
+                        }).FirstOrDefault();
     }
 }

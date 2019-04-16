@@ -39,8 +39,9 @@ namespace Eru
             Func<T, StatefulComputation<TResult, TState>> function,
             Func<TResult, TOutput> map)
             =>
-                statefulComputation.Bind(source => function(source)
-                    .Bind(result => AsStateful<TOutput, TState>(map(result))));
+                statefulComputation.Bind(
+                    source => function(source)
+                        .Bind(result => AsStateful<TOutput, TState>(map(result))));
 
         public static StatefulComputation<TState, TState> Get<TState>()
             =>
@@ -69,9 +70,11 @@ namespace Eru
 
             (TResult value, TState state) Loop(TState state)
             {
-                var m = stateFunc.Bind(x => Get<TState>()
-                    .Bind(y => Set(updateState(y))
-                        .Bind(z => AsStateful<TResult, TState>(function(x)))));
+                var m = stateFunc.Bind(
+                    x => Get<TState>()
+                        .Bind(
+                            y => Set(updateState(y))
+                                .Bind(z => AsStateful<TResult, TState>(function(x)))));
 
                 return continueWhile(state)
                     ? m.Bind<TResult, TState, TResult>(result => Loop)(state)

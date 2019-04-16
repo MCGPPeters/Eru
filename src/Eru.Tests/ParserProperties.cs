@@ -12,15 +12,17 @@ namespace Eru.Tests
         private static readonly Gen<NonEmptyString> WordGenerator =
             Arb.Default.NonEmptyString()
                 .Generator
-                .Where(s =>
-                    !s.Get.Contains("\r") &&
-                    !s.Get.Contains("\n") &&
-                    !s.Get.Contains("\t"))
-                .Where(s =>
-                {
-                    var regEx = new Regex(@"^[A-Za-z]*$");
-                    return regEx.Match(s.Get).Success;
-                });
+                .Where(
+                    s =>
+                        !s.Get.Contains("\r") &&
+                        !s.Get.Contains("\n") &&
+                        !s.Get.Contains("\t"))
+                .Where(
+                    s =>
+                    {
+                        var regEx = new Regex(@"^[A-Za-z]*$");
+                        return regEx.Match(s.Get).Success;
+                    });
 
         public static Arbitrary<NonEmptyString> ArbitraryWord => Arb.From(WordGenerator);
     }
@@ -29,7 +31,8 @@ namespace Eru.Tests
     {
         public ParserProperties() => Arb.Register<Generators>();
 
-        [Property(Verbose = true,
+        [Property(
+            Verbose = true,
             DisplayName =
                 "Parsing an item in a non empty string should return the first character and the remainder of the string")]
         public void Test2(NonEmptyString input)
@@ -53,7 +56,8 @@ namespace Eru.Tests
             Assert.Empty(parsedString);
         }
 
-        [Property(Verbose = true,
+        [Property(
+            Verbose = true,
             DisplayName = "The parser that always succeeds returnd the provided value and the unaltered input")]
         public void Test4(NonEmptyString value, NonEmptyString input)
         {

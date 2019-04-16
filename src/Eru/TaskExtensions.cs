@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Eru
@@ -19,10 +18,11 @@ namespace Eru
 
         public static Task<TResult> Map<T, TResult>
             (this Task<T> task, Func<Exception, TResult> faulted, Func<T, TResult> completed)
-            => task.ContinueWith(t =>
-                t.Status == TaskStatus.Faulted
-                    ? faulted(t.Exception)
-                    : completed(t.Result));
+            => task.ContinueWith(
+                t =>
+                    t.Status == TaskStatus.Faulted
+                        ? faulted(t.Exception)
+                        : completed(t.Result));
 
         public static async Task<TResult> Bind<T, TResult>
             (this Task<T> task, Func<T, Task<TResult>> f)
@@ -49,19 +49,21 @@ namespace Eru
         /// <returns></returns>
         public static Task<T> Otherwise<T>
             (this Task<T> task, Func<Task<T>> fallback)
-            => task.ContinueWith(t =>
-                    t.Status == TaskStatus.Faulted
-                        ? fallback()
-                        : t.Result.AsTask()
+            => task.ContinueWith(
+                    t =>
+                        t.Status == TaskStatus.Faulted
+                            ? fallback()
+                            : t.Result.AsTask()
                 )
                 .Unwrap();
 
         public static Task Otherwise
             (this Task task, Func<Task> fallback)
-            => task.ContinueWith(t =>
-                    t.Status == TaskStatus.Faulted
-                        ? fallback()
-                        : t
+            => task.ContinueWith(
+                    t =>
+                        t.Status == TaskStatus.Faulted
+                            ? fallback()
+                            : t
                 )
                 .Unwrap();
 
@@ -74,10 +76,11 @@ namespace Eru
         /// <returns></returns>
         public static Task<T> Otherwise<T>
             (this Task<T> task, Func<AggregateException, T> fallback)
-            => task.ContinueWith(t =>
-                t.Status == TaskStatus.Faulted
-                    ? fallback(t.Exception)
-                    : t.Result);
+            => task.ContinueWith(
+                t =>
+                    t.Status == TaskStatus.Faulted
+                        ? fallback(t.Exception)
+                        : t.Result);
 
         public static Task<Unit> Otherwise
             (this Task task, Action<AggregateException> fallback)
@@ -91,7 +94,7 @@ namespace Eru
 
 
         /// <summary>
-        /// Retry with exponential backoff
+        ///     Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="function"></param>
@@ -101,10 +104,11 @@ namespace Eru
             (Func<Task<T>> function, params TimeSpan[] delaysBetweenRetries)
             => delaysBetweenRetries.Length == 0
                 ? function()
-                : function().Otherwise(() =>
-                    from _ in Task.Delay(delaysBetweenRetries.First().Milliseconds)
-                    from t in Retry(function, delaysBetweenRetries.Skip(1).ToArray())
-                    select t);
+                : function().Otherwise(
+                    () =>
+                        from _ in Task.Delay(delaysBetweenRetries.First().Milliseconds)
+                        from t in Retry(function, delaysBetweenRetries.Skip(1).ToArray())
+                        select t);
 
         public static Task<T> Retry<T>
             (this Task<T> task, params TimeSpan[] delaysBetweenRetries)
@@ -112,7 +116,6 @@ namespace Eru
 
         public static Task<Unit> Retry
             (this Task task, params TimeSpan[] delaysBetweenRetries) =>
-             Retry(task.ReturnUnit, delaysBetweenRetries);
-
+            Retry(task.ReturnUnit, delaysBetweenRetries);
     }
 }
