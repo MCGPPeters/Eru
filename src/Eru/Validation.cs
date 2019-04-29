@@ -24,6 +24,9 @@ namespace Eru
 
         public static implicit operator string[](Error error) => error.Messages;
 
+        public static implicit operator string (Error error) => error.Messages.Select(m => new Error(m))
+            .Aggregate((current, next) => current.Append(next));
+
         public override Error Append(Error t) => new Error(t);
     }
 

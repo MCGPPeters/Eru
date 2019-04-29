@@ -94,11 +94,12 @@ namespace Eru
 
 
         /// <summary>
-        ///     Retry with exponential backoff
+        ///     Retry with delays as long as the task is in a faulted state. 
+        ///     The number of delays also indicate the number of retries
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="function"></param>
-        /// <param name="delaysBetweenRetries"></param>
+        /// <param name="delaysBetweenRetries">Delays between retries</param>
         /// <returns></returns>
         public static Task<T> Retry<T>
             (Func<Task<T>> function, params TimeSpan[] delaysBetweenRetries)
