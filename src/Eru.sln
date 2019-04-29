@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eru", "Eru\Eru.csproj", "{12EEF6CC-0A95-42B7-AB7D-20ECDC1F3205}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eru.Tests", "Eru.Tests\Eru.Tests.csproj", "{CDBA9102-8AD4-44F5-B44A-B81D1328EE9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eru.Tests", "Eru.Tests\Eru.Tests.csproj", "{C7C102B8-4A89-482D-8A32-0D7EB4210CBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,12 +17,15 @@ Global
 		{12EEF6CC-0A95-42B7-AB7D-20ECDC1F3205}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12EEF6CC-0A95-42B7-AB7D-20ECDC1F3205}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12EEF6CC-0A95-42B7-AB7D-20ECDC1F3205}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CDBA9102-8AD4-44F5-B44A-B81D1328EE9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CDBA9102-8AD4-44F5-B44A-B81D1328EE9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CDBA9102-8AD4-44F5-B44A-B81D1328EE9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CDBA9102-8AD4-44F5-B44A-B81D1328EE9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7C102B8-4A89-482D-8A32-0D7EB4210CBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7C102B8-4A89-482D-8A32-0D7EB4210CBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7C102B8-4A89-482D-8A32-0D7EB4210CBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7C102B8-4A89-482D-8A32-0D7EB4210CBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CA8B9DFC-9C75-4391-A572-E845B3EECFE3}
 	EndGlobalSection
 EndGlobal

@@ -39,7 +39,7 @@ namespace Eru.Tests
             .Try(x => x / 0)
             .Match(
                 _ => Fail(),
-                exception => IsType(typeof(DivideByZeroException), exception));
+                exception => IsType<DivideByZeroException>(exception));
 
         [Property(
             Verbose = true,
@@ -60,7 +60,7 @@ namespace Eru.Tests
             .Retry(x => x / 0, TimeSpan.FromMilliseconds(1))
             .Match(
                 _ => Fail(),
-                exception => IsType(typeof(DivideByZeroException), exception));
+                exception => IsType<DivideByZeroException>( exception));
 
 
         [Property(
@@ -93,10 +93,10 @@ namespace Eru.Tests
 
         [Fact(
             DisplayName =
-                "Retry can run asynchrounously")]
+                "Retry can run asynchronously")]
         public async Task Property7() => await new SqlConnection()
             .OpenAsync()
             .Retry(TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(20))
-            .Otherwise(exception => IsType(typeof(InvalidOperationException), exception.InnerException));
+            .Otherwise(exception => IsType<InvalidOperationException>(exception.InnerException));
     }
 }
