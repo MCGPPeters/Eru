@@ -17,7 +17,7 @@ namespace Eru
             Func<T, Either<TResult, TOtherwise>> function) => eitherValue.Match(
             function,
             alternatives =>
-                alternatives.AsEither<TResult, TOtherwise>())();
+                alternatives.AsEither<TResult, TOtherwise>());
 
         public static Either<TResult, TOtherwise> Then<T, TOtherwise, TResult>(
             this Either<T, TOtherwise> eitherValue,
@@ -37,7 +37,7 @@ namespace Eru
             this Either<T, TOtherwise> eitherValue, Func<TOtherwise, TOtherwiseResult> function) => eitherValue.Match(
             AsEither<T, TOtherwiseResult>,
             alternative =>
-                AsEither<T, TOtherwiseResult>(function(alternative)))();
+                AsEither<T, TOtherwiseResult>(function(alternative)));
 
         public static Either<T, TOtherwise> Where<T, TOtherwise>(this Either<T, TOtherwise> eitherValue,
             Predicate<T> predicate, TOtherwise alternative) => eitherValue
@@ -77,7 +77,7 @@ namespace Eru
             this Either<T, TOtherwise> eitherValue) =>
             eitherValue.Match(
                 t => Enumerable.Empty<TOtherwise>(),
-                otherwise => new[] {otherwise})();
+                otherwise => new[] {otherwise});
 
 
         public static IEnumerable<TResult> Otherwise<T, TOtherwise, TResult>(
@@ -85,7 +85,7 @@ namespace Eru
             Func<TOtherwise, TResult> fallback) =>
             eitherValue.Match(
                 t => Enumerable.Empty<TResult>(),
-                otherwise => new[] {fallback(otherwise)})();
+                otherwise => new[] {fallback(otherwise)});
 
 
         public static IEnumerable<TResult> Otherwise<T, TOtherwise, TResult>(
@@ -93,7 +93,7 @@ namespace Eru
             Func<TOtherwise, TResult> fallback) =>
             @this.AsEither<T, TOtherwise>().Match(
                 t => Enumerable.Empty<TResult>(),
-                otherwise => new[] {fallback(otherwise)})();
+                otherwise => new[] {fallback(otherwise)});
 
         public static Either<TResult, TOtherwise> Apply<T, TOtherwise, TResult>(
             this Either<Func<T, TResult>, TOtherwise> function, Either<T, TOtherwise> eitherValue)
@@ -104,14 +104,14 @@ namespace Eru
                         .Match(
                             value =>
                                 AsEither<TResult, TOtherwise>(func(value)),
-                            AsEither<TResult, TOtherwise>)(),
+                            AsEither<TResult, TOtherwise>),
                 otherwise =>
                     eitherValue
                         .Match(
                             _ =>
                                 AsEither<TResult, TOtherwise>(otherwise),
                             alternative =>
-                                AsEither<TResult, TOtherwise>(otherwise.Append(alternative)))())();
+                                AsEither<TResult, TOtherwise>(otherwise.Append(alternative))));
 
         /// <summary>
         ///     Alias of map for linq syntax support
@@ -133,14 +133,14 @@ namespace Eru
                     .Match(
                         intermediateResult =>
                             AsEither<TResult, TOtherwise>(project(value, intermediateResult)),
-                        AsEither<TResult, TOtherwise>)(),
-            AsEither<TResult, TOtherwise>)();
+                        AsEither<TResult, TOtherwise>),
+            AsEither<TResult, TOtherwise>);
     }
 
 
     public interface Either<out T, out TOtherwise>
     {
-        Func<TResult> Match<TResult>(Func<T, TResult> @do, Func<TOtherwise, TResult> otherwise);
+        TResult Match<TResult>(Func<T, TResult> @do, Func<TOtherwise, TResult> otherwise);
 
         void Match(Action<T> @do, Action<TOtherwise> otherwise);
     }
@@ -174,22 +174,23 @@ namespace Eru
 
         public static implicit operator EitherValue<T, TOtherwise>(TOtherwise right) => new EitherValue<T, TOtherwise>(right);
 
-        public Func<TResult> Match<TResult>(Func<T, TResult> @do, Func<TOtherwise, TResult> otherwise)
+        public TResult Match<TResult>(Func<T, TResult> @do, Func<TOtherwise, TResult> otherwise)
         {
+
             if (_isJust)
             {
                 var thisJust = Just;
-                return () => @do(thisJust);
+                return @do(thisJust);
 
             }
 
             if (!_isOtherwise) throw new InvalidOperationException();
 
             var thisOtherwise = Otherwise;
-            return () => otherwise(thisOtherwise);
+            return otherwise(thisOtherwise);
         }
 
         public void Match(Action<T> @do, Action<TOtherwise> otherwise) =>
-            Match(@do.ToFunction(), otherwise.ToFunction())();
+            Match(@do.ToFunction(), otherwise.ToFunction());
     }
 }

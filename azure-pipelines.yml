@@ -1,0 +1,36 @@
+trigger:
+
+- master
+
+pool:
+  vmImage: 'windows-2019'
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: './src'
+    feedsToUse: 'select'
+    versioningScheme: 'off'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: './src'
+    feedsToUse: 'select'
+    versioningScheme: 'off'
+- task: GitVersion@4
+  inputs:
+    updateAssemblyInfo: true
+    preferBundledVersion: true
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    feedsToUse: 'select'
+    packagesToPack: '**/*.csproj'
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'GitVersion_NuGetVersionV2'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'package'
+    publishLocation: 'Container'

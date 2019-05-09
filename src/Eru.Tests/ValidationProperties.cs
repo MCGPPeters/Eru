@@ -47,7 +47,7 @@ namespace Eru.Tests
                 .Check(p => p.Age >= 0, _ => "Must have a valid age")
                 .Check(p => !string.IsNullOrWhiteSpace(p.Name), _ => "Must have a name")
                 .Match(
-                    success => { },
+                    success => Fail(),
                     error => { Equal(Error("Must have a name"), error, new ErrorEqualityComparer()); });
             ;
         }

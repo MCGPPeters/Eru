@@ -35,7 +35,7 @@ namespace Eru
             eitherValue.Match(
                 AsEither<T, TOtherwise>,
                 alternative =>
-                    AsEither<T, TOtherwise>(function(alternative)))();
+                    AsEither<T, TOtherwise>(function(alternative)));
 
         //EitherValue<TResult, Func<Func<bool>, EitherValue<TResult, Exception>>>
         public static Either<TResult, Exception> Retry<T, TResult>(this T @this,

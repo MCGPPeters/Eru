@@ -102,7 +102,7 @@ namespace Eru
             return f.Aggregate(
                 (current, next) => current.Match(
                     t => new EitherValue<T, Error>(t),
-                    error => next.OtherwiseMap(error1 => new Error(error.Messages.Concat(error1.Messages).ToArray())))());
+                    error => next.OtherwiseMap(error1 => new Error(error.Messages.Concat(error1.Messages).ToArray()))));
 
         }
 

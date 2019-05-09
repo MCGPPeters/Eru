@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FsCheck;
 using FsCheck.Xunit;
@@ -75,28 +77,25 @@ namespace Eru.Tests
                     : throw new Exception())
             .Match(i => Succeed(), exception => Fail());
 
-        //[Property(Verbose = true, DisplayName =
-        //    "Retries equal the number of delays")]
-        //public void Property6(PositiveInt numberOfCalls)
-        //{
-        //    numberOfTries = 1;
-        //    Task
-        //        .Run(() =>
-        //        {
-        //            if (numberOfCalls.Get + 100 == numberOfTries) return;
-        //            Interlocked.Increment(ref numberOfTries);
-        //            throw new Exception("foo");
-        //        })
-        //        .Retry(Enumerable.Repeat(TimeSpan.FromMilliseconds(1), numberOfCalls.Get).ToArray())
-        //        .Otherwise(exception => Equal(numberOfCalls.Get, numberOfTries)).Wait();
-        //}
+        
+        [Property(DisplayName =
+           "Retries equal the number of delays", Verbose = true)]
+        public async void Property6(NonNegativeInt numberOfCalls)
+        {
+            var numberOfTries = 0;
 
-        [Fact(
-            DisplayName =
-                "Retry can run asynchronously")]
-        public async Task Property7() => await new SqlConnection()
-            .OpenAsync()
-            .Retry(TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(20))
-            .Otherwise(exception => IsType<InvalidOperationException>(exception.InnerException));
+            try
+            {
+                await new Func<Task<int>>(() => {
+                    Interlocked.Increment(ref numberOfTries);
+                    return Task.FromException<int>(new Exception());
+                }).Retry(Enumerable.Repeat(TimeSpan.FromMilliseconds(1), numberOfCalls.Get).ToArray());
+            }
+            catch
+            {
+                Equal(numberOfCalls.Get + 1, numberOfTries);
+            }
+
+        }
     }
 }

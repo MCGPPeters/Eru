@@ -24,7 +24,8 @@ namespace Eru
                         ? faulted(t.Exception)
                         : completed(t.Result));
 
-        public static async Task<TResult> Bind<T, TResult>
+
+    public static async Task<TResult> Bind<T, TResult>
             (this Task<T> task, Func<T, Task<TResult>> f)
             => await f(await task);
 
@@ -82,17 +83,6 @@ namespace Eru
                         ? fallback(t.Exception)
                         : t.Result);
 
-        public static Task<Unit> Otherwise
-            (this Task task, Action<AggregateException> fallback)
-            => task.ReturnUnit().Otherwise(fallback.ToFunction());
-
-        public static async Task<Unit> ReturnUnit(this Task t)
-        {
-            await t;
-            return Unit;
-        }
-
-
         /// <summary>
         ///     Retry with delays as long as the task is in a faulted state. 
         ///     The number of delays also indicate the number of retries
@@ -102,7 +92,7 @@ namespace Eru
         /// <param name="delaysBetweenRetries">Delays between retries</param>
         /// <returns></returns>
         public static Task<T> Retry<T>
-            (Func<Task<T>> function, params TimeSpan[] delaysBetweenRetries)
+            (this Func<Task<T>> function, params TimeSpan[] delaysBetweenRetries)
             => delaysBetweenRetries.Length == 0
                 ? function()
                 : function().Otherwise(
@@ -110,13 +100,5 @@ namespace Eru
                         from _ in Task.Delay(delaysBetweenRetries.First().Milliseconds)
                         from t in Retry(function, delaysBetweenRetries.Skip(1).ToArray())
                         select t);
-
-        public static Task<T> Retry<T>
-            (this Task<T> task, params TimeSpan[] delaysBetweenRetries)
-            => Retry(() => task, delaysBetweenRetries);
-
-        public static Task<Unit> Retry
-            (this Task task, params TimeSpan[] delaysBetweenRetries) =>
-            Retry(task.ReturnUnit, delaysBetweenRetries);
     }
 }
