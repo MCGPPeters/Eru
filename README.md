@@ -4,4 +4,4 @@
 
 [![NuGet Latest Stable https://www.nuget.org/packages/Eru](https://img.shields.io/nuget/v/Eru.svg)](https://www.nuget.org/packages/Eru)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/522cybaamn5370r1?svg=true)](https://ci.appveyor.com/project/MCGPPeters/eru)
+[![Build Status](https://dev.azure.com/mcgppeters/Eru/_apis/build/status/MCGPPeters.Eru?branchName=master)](https://dev.azure.com/mcgppeters/Eru/_build/latest?definitionId=4&branchName=master)
